@@ -22,8 +22,8 @@ echo ""
 
 # Step 1: Pull changes from git repository
 echo -e "${YELLOW}Pulling latest changes from git repository...${NC}"
-git fetch origin
-git pull origin main
+git fetch --prune origin
+git reset --hard origin/main
 
 if [ $? -ne 0 ]; then
     echo -e "${RED}Failed to pull from git repository. Exiting.${NC}"
