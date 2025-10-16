@@ -6,3 +6,4 @@ Flask-OAuthlib
 PyJWT
 datetime
 flask_cors
+pytest
