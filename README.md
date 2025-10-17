@@ -1,5 +1,5 @@
 # Plated
-A gamifying cooking recipe app  
+A gamified cooking recipe app  
 
 ## The problem
 Cooking is not popular among young adults. 
