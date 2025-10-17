@@ -116,7 +116,7 @@ kill_group "$FRONTEND_PIDS" "frontend"
 # Start the backend server in the background
 echo -e "${YELLOW}Starting backend server...${NC}"
 # Start in its own process group so group-kill is safe
-nohup setsid python3 app.py > backend.log 2>&1 &
+nohup setsid python3 backend/app.py > backend.log 2>&1 &
 if [ $? -ne 0 ]; then
     echo -e "${RED}Failed to start backend server. Exiting.${NC}"
     exit 1
