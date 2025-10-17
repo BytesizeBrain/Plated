@@ -50,7 +50,7 @@ fi
 # Step 3: Install backend dependencies
 echo -e "${YELLOW}Installing backend dependencies...${NC}"
 pip install --upgrade pip
-pip install -r requirements.txt
+pip install -r ./backend/requirements.txt
 if [ $? -ne 0 ]; then
     echo -e "${RED}Failed to install backend dependencies. Exiting.${NC}"
     exit 1
