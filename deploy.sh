@@ -58,6 +58,27 @@ fi
 echo -e "${GREEN}Backend dependencies installed.${NC}"
 echo ""
 
+# Ensure Node.js >= 20.19 using NVM if available, otherwise install Node 22.x
+echo -e "${YELLOW}Ensuring compatible Node.js version...${NC}"
+export NVM_DIR="$HOME/.nvm"
+if [ -s "$NVM_DIR/nvm.sh" ]; then
+  # Load nvm
+  . "$NVM_DIR/nvm.sh"
+  # Install/use a compatible version (prefer Node 22 LTS)
+  nvm install 22 || nvm install --lts
+  nvm use 22 || nvm use --lts
+  echo -e "${GREEN}Using Node $(node -v) and npm $(npm -v) via nvm.${NC}"
+else
+  echo -e "${YELLOW}nvm not found. Installing...${NC}"
+    # Download and install nvm:
+    curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.3/install.sh | bash
+    # in lieu of restarting the shell
+    \. "$HOME/.nvm/nvm.sh"
+    # Download and install Node.js:
+    nvm install 22
+    echo -e "${GREEN}Using Node $(node -v) and npm $(npm -v) via system install.${NC}"
+fi
+
 # Step 4: Kill all backend Python processes and restart the backend server
 
 # Find process IDs (BACKEND_PIDS) of scripts matching 'python ... app.py'
