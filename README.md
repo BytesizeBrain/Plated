@@ -1,4 +1,4 @@
-# Cooking Made Fun
+# Plated
 A gamifying cooking recipe app  
 
 ## The problem
