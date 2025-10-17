@@ -126,7 +126,7 @@ echo ""
 
 # Step 5: Start the frontend server using npm
 echo -e "${YELLOW}Starting frontend server...${NC}"
-cd ../frontend || exit 1
+cd ./frontend/Plated || exit 1
 npm install
 if [ $? -ne 0 ]; then
     echo -e "${RED}Failed to install frontend dependencies. Exiting.${NC}"
