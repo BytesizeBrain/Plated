@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { isAuthenticated, removeToken } from '../utils/auth';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import { isAuthenticated, removeToken, setToken } from '../utils/auth';
 import { updateUser, checkUsername, getUserProfile } from '../utils/api';
 
 function Profile() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   
   const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -25,6 +26,15 @@ function Profile() {
   const [successMessage, setSuccessMessage] = useState('');
 
   useEffect(() => {
+    // Get token from URL parameter if present (OAuth redirect)
+    const token = searchParams.get('token');
+    if (token) {
+      setToken(token);
+      // Remove token from URL
+      navigate('/profile', { replace: true });
+      return;
+    }
+
     // Check authentication
     if (!isAuthenticated()) {
       navigate('/login');
@@ -49,7 +59,7 @@ function Profile() {
     };
 
     loadUserProfile();
-  }, [navigate]);
+  }, [navigate, searchParams]);
 
   // Check username availability when editing
   useEffect(() => {

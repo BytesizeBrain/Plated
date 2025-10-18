@@ -117,9 +117,17 @@ def authorize_google():
         # Add additional info to JWT payload
         payload['profile_pic'] = user_info.get('picture', "https://static.vecteezy.com/system/resources/previews/009/292/244/non_2x/default-avatar-icon-of-social-media-user-vector.jpg")
 
-    jwt_token = jwt.encode(payload, app.config['JWT_SECRET'], algorithm='HS256')
-    
-    return redirect(f"{app.config['FRONTEND_URL']}/register?token={jwt_token}") # Redirect users to the frontend ouath callback route with the JWT token
+        jwt_token = jwt.encode(payload, app.config['JWT_SECRET'], algorithm='HS256')
+        
+        # New user - redirect to register page
+        return redirect(f"{app.config['FRONTEND_URL']}/register?token={jwt_token}")
+    else:
+        logging.debug(f"Existing user: {user_info['email']}")
+        
+        jwt_token = jwt.encode(payload, app.config['JWT_SECRET'], algorithm='HS256')
+        
+        # Existing user - redirect to profile page
+        return redirect(f"{app.config['FRONTEND_URL']}/profile?token={jwt_token}")
 
 @users_bp.route('/api/user/register', methods=['POST'])
 @jwt_required

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { setToken, getUserFromToken } from '../utils/auth';
-import { registerUser, checkUsername } from '../utils/api';
+import { registerUser, checkUsername, getUserProfile } from '../utils/api';
 
 function Register() {
   const [searchParams] = useSearchParams();
@@ -28,12 +28,24 @@ function Register() {
     // Store token
     setToken(token);
 
-    // Get user info from token and pre-fill form
-    const userInfo = getUserFromToken();
-    if (userInfo) {
-      setDisplayName(userInfo.display_name || '');
-      setProfilePic(userInfo.profile_pic || '');
-    }
+    // Check if user already has a profile
+    const checkExistingProfile = async () => {
+      try {
+        await getUserProfile();
+        // If successful, user already exists - redirect to profile
+        navigate('/profile');
+      } catch (err) {
+        // If 404 or other error, user needs to complete registration
+        // Get user info from token and pre-fill form
+        const userInfo = getUserFromToken();
+        if (userInfo) {
+          setDisplayName(userInfo.display_name || '');
+          setProfilePic(userInfo.profile_pic || '');
+        }
+      }
+    };
+
+    checkExistingProfile();
   }, [searchParams, navigate]);
 
   // Check username availability with debounce
