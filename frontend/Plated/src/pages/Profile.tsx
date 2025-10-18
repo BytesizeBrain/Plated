@@ -29,6 +29,7 @@ function Profile() {
     const initProfile = async () => {
       // Get token from URL parameter if present (OAuth redirect)
       const token = searchParams.get('token');
+      
       if (token) {
         setToken(token);
         // Clean up URL by removing the token parameter
