@@ -2,8 +2,12 @@ from extensions import app, db
 from flask_cors import CORS
 
 
-# Configure CORS to allow all requests from frontend
-CORS(app, origins="http://localhost:5173", supports_credentials=True)
+# Configure CORS to allow requests from both local and production frontend
+CORS(app, origins=[
+    "http://localhost:5173",
+    "http://platedwithfriends.life:5173",
+    "http://platedwithfriends.life"
+], supports_credentials=True)
 
 # Import blueprints after app and db are initialized
 from routes.user_routes import users_bp
