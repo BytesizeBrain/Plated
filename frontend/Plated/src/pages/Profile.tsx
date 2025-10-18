@@ -26,23 +26,22 @@ function Profile() {
   const [successMessage, setSuccessMessage] = useState('');
 
   useEffect(() => {
-    // Get token from URL parameter if present (OAuth redirect)
-    const token = searchParams.get('token');
-    if (token) {
-      setToken(token);
-      // Remove token from URL
-      navigate('/profile', { replace: true });
-      return;
-    }
+    const initProfile = async () => {
+      // Get token from URL parameter if present (OAuth redirect)
+      const token = searchParams.get('token');
+      if (token) {
+        setToken(token);
+        // Clean up URL by removing the token parameter
+        window.history.replaceState({}, '', '/profile');
+      }
 
-    // Check authentication
-    if (!isAuthenticated()) {
-      navigate('/login');
-      return;
-    }
+      // Check authentication
+      if (!isAuthenticated()) {
+        navigate('/login');
+        return;
+      }
 
-    // Load user data from API
-    const loadUserProfile = async () => {
+      // Load user data from API
       try {
         setIsLoading(true);
         const profile = await getUserProfile();
@@ -52,14 +51,23 @@ function Profile() {
         setProfilePic(profile.profile_pic);
       } catch (error) {
         console.error('Failed to load profile:', error);
-        // If we get an error (like 401), the axios interceptor will redirect to login
+        // If we get an error (like 404), user needs to register
+        if (error && typeof error === 'object' && 'response' in error) {
+          const axiosError = error as { response?: { status: number } };
+          if (axiosError.response?.status === 404) {
+            // User doesn't exist, redirect to register
+            navigate('/register');
+            return;
+          }
+        }
+        // For other errors (like 401), the axios interceptor will redirect to login
       } finally {
         setIsLoading(false);
       }
     };
 
-    loadUserProfile();
-  }, [navigate, searchParams]);
+    initProfile();
+  }, [navigate]);
 
   // Check username availability when editing
   useEffect(() => {

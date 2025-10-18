@@ -32,9 +32,12 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     // If we get a 401, remove the token and redirect to login
+    // But only if we're not already on the login page
     if (error.response?.status === 401) {
       removeToken();
-      window.location.href = '/login';
+      if (window.location.pathname !== '/login') {
+        window.location.href = '/login';
+      }
     }
     return Promise.reject(error);
   }

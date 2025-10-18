@@ -16,20 +16,20 @@ function Register() {
   const [error, setError] = useState('');
 
   useEffect(() => {
-    // Get token from URL parameter
-    const token = searchParams.get('token');
-    
-    if (!token) {
-      // If no token, redirect to login
-      navigate('/login');
-      return;
-    }
+    const initRegister = async () => {
+      // Get token from URL parameter
+      const token = searchParams.get('token');
+      
+      if (!token) {
+        // If no token, redirect to login
+        navigate('/login');
+        return;
+      }
 
-    // Store token
-    setToken(token);
+      // Store token
+      setToken(token);
 
-    // Check if user already has a profile
-    const checkExistingProfile = async () => {
+      // Check if user already has a profile
       try {
         await getUserProfile();
         // If successful, user already exists - redirect to profile
@@ -45,8 +45,8 @@ function Register() {
       }
     };
 
-    checkExistingProfile();
-  }, [searchParams, navigate]);
+    initRegister();
+  }, [navigate]);
 
   // Check username availability with debounce
   useEffect(() => {
