@@ -3,7 +3,6 @@ import Landing from './pages/Landing';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Profile from './pages/Profile';
-import ProtectedRoute from './components/ProtectedRoute';
 import './App.css';
 
 function App() {
@@ -13,14 +12,7 @@ function App() {
         <Route path="/" element={<Landing />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
-        <Route 
-          path="/profile" 
-          element={
-            <ProtectedRoute>
-              <Profile />
-            </ProtectedRoute>
-          } 
-        />
+        <Route path="/profile" element={<Profile />} />
       </Routes>
     </Router>
   );
