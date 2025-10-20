@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { isAuthenticated, removeToken } from '../utils/auth';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import { isAuthenticated, removeToken, setToken } from '../utils/auth';
 import { updateUser, checkUsername, getUserProfile } from '../utils/api';
 
 function Profile() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   
   const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -25,14 +26,23 @@ function Profile() {
   const [successMessage, setSuccessMessage] = useState('');
 
   useEffect(() => {
-    // Check authentication
-    if (!isAuthenticated()) {
-      navigate('/login');
-      return;
-    }
+    const initProfile = async () => {
+      // Get token from URL parameter if present (OAuth redirect)
+      const token = searchParams.get('token');
+      
+      if (token) {
+        setToken(token);
+        // Clean up URL by removing the token parameter
+        window.history.replaceState({}, '', '/profile');
+      }
 
-    // Load user data from API
-    const loadUserProfile = async () => {
+      // Check authentication
+      if (!isAuthenticated()) {
+        navigate('/login');
+        return;
+      }
+
+      // Load user data from API
       try {
         setIsLoading(true);
         const profile = await getUserProfile();
@@ -42,13 +52,22 @@ function Profile() {
         setProfilePic(profile.profile_pic);
       } catch (error) {
         console.error('Failed to load profile:', error);
-        // If we get an error (like 401), the axios interceptor will redirect to login
+        // If we get an error (like 404), user needs to register
+        if (error && typeof error === 'object' && 'response' in error) {
+          const axiosError = error as { response?: { status: number } };
+          if (axiosError.response?.status === 404) {
+            // User doesn't exist, redirect to register
+            navigate('/register');
+            return;
+          }
+        }
+        // For other errors (like 401), the axios interceptor will redirect to login
       } finally {
         setIsLoading(false);
       }
     };
 
-    loadUserProfile();
+    initProfile();
   }, [navigate]);
 
   // Check username availability when editing

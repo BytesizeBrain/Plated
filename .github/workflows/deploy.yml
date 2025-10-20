@@ -1,0 +1,43 @@
+name: Deploy to EC2
+
+on:
+  push:
+    branches:
+      - main  # Triggers deployment when pushing to main branch
+  workflow_dispatch:  # Allows manual deployment from GitHub Actions tab
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H ec2-3-139-205-219.us-east-2.compute.amazonaws.com >> ~/.ssh/known_hosts
+
+      - name: Deploy to EC2
+        run: |
+          ssh -o StrictHostKeyChecking=no ubuntu@ec2-3-139-205-219.us-east-2.compute.amazonaws.com << 'EOF'
+            # Navigate to project directory
+            cd /home/ubuntu/Plated
+            
+            # Run deployment script (it handles git pull, dependencies, and restart)
+            echo "🚀 Starting deployment process..."
+            bash deploy.sh
+            
+            echo "✅ Deployment completed successfully!"
+          EOF
+
+      - name: Deployment Status
+        if: success()
+        run: echo "🎉 Deployment to EC2 completed successfully!"
+
+      - name: Deployment Failed
+        if: failure()
+        run: echo "❌ Deployment failed. Please check the logs above."

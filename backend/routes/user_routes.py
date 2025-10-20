@@ -6,7 +6,7 @@ import jwt
 import datetime
 from functools import wraps
 from extensions import app, db
-from models.user_model import User
+from models.user_model import User, follow_requests, followers
 
 # Configure logging to see debug messages
 logging.basicConfig(level=logging.DEBUG)
@@ -117,9 +117,17 @@ def authorize_google():
         # Add additional info to JWT payload
         payload['profile_pic'] = user_info.get('picture', "https://static.vecteezy.com/system/resources/previews/009/292/244/non_2x/default-avatar-icon-of-social-media-user-vector.jpg")
 
-    jwt_token = jwt.encode(payload, app.config['JWT_SECRET'], algorithm='HS256')
-    
-    return redirect(f"{app.config['FRONTEND_URL']}/register?token={jwt_token}") # Redirect users to the frontend ouath callback route with the JWT token
+        jwt_token = jwt.encode(payload, app.config['JWT_SECRET'], algorithm='HS256')
+        
+        # New user - redirect to register page
+        return redirect(f"{app.config['FRONTEND_URL']}/register?token={jwt_token}")
+    else:
+        logging.debug(f"Existing user: {user_info['email']}")
+        
+        jwt_token = jwt.encode(payload, app.config['JWT_SECRET'], algorithm='HS256')
+        
+        # Existing user - redirect to profile page
+        return redirect(f"{app.config['FRONTEND_URL']}/profile?token={jwt_token}")
 
 @users_bp.route('/api/user/register', methods=['POST'])
 @jwt_required
@@ -177,7 +185,9 @@ def get_profile():
         "email": user.email,
         "username": user.username,
         "display_name": user.display_name,
-        "profile_pic": user.profile_pic
+        "profile_pic": user.profile_pic,
+        "followers_count": user.followers.count(),
+        "following_count": user.following.count(),
     }), 200
 
 @users_bp.route('/api/user/update', methods=['PUT'])
@@ -211,6 +221,31 @@ def update_user():
         return jsonify({"message": "User updated successfully"}), 200
     else:
         return jsonify({"message": "No valid fields to update"}), 400
+    
+@users_bp.route('/api/user/connections', methods=['GET'])
+@jwt_required
+def get_followers():
+    """Get the current user's followers list"""
+    user = User.query.filter_by(email=g.jwt['email']).first()
+    if not user:
+        return jsonify({"error": "User not found"}), 404
+    
+    followers = [{
+        "username": follower.username,
+        "display_name": follower.display_name,
+        "profile_pic": follower.profile_pic
+    } for follower in user.followers]
+
+    following = [{
+        "username": followed.username,
+        "display_name": followed.display_name,
+        "profile_pic": followed.profile_pic
+    } for followed in user.following]
+
+    return jsonify({
+        "followers": followers,
+        "following": following
+    }), 200
 
 # API to be used during registration and name changes to check if a username is already taken
 @users_bp.route('/api/user/check_username', methods=['GET'])
@@ -225,3 +260,178 @@ def check_username():
         return jsonify({"exists": True}), 200
     else:
         return jsonify({"exists": False}), 200
+
+# --- FOLLOW REQUESTS API ---
+@users_bp.route('/api/user/follow-request', methods=['POST'])
+@jwt_required
+def send_follow_request():
+    data = request.get_json()
+    if not data or 'target_username' not in data:
+        return jsonify({'error': 'target_username is required'}), 400
+    target = User.query.filter_by(username=data['target_username']).first()
+    if not target:
+        return jsonify({'error': 'Target user not found'}), 404
+    user = User.query.filter_by(email=g.jwt['email']).first()
+    if not user:
+        return jsonify({'error': 'User not found'}), 404
+    # Prevent duplicate requests or self-request
+    if user.id == target.id:
+        return jsonify({'error': 'Cannot follow yourself'}), 400
+    # Check if already following
+    if target in user.following:
+        return jsonify({'error': 'Already following this user'}), 400
+    # Check if request already exists
+    exists = db.session.execute(
+        follow_requests.select().where(
+            (follow_requests.c.requester_id == user.id) & (follow_requests.c.target_id == target.id)
+        )
+    ).first()
+    if exists:
+        return jsonify({'error': 'Follow request already sent'}), 400
+    # Insert follow request
+    db.session.execute(follow_requests.insert().values(requester_id=user.id, target_id=target.id))
+    db.session.commit()
+    return jsonify({'message': 'Follow request sent'}), 201
+
+
+# Get received follow requests (pending)
+@users_bp.route('/api/user/follow-requests/received', methods=['GET'])
+@jwt_required
+def get_received_follow_requests():
+    user = User.query.filter_by(email=g.jwt['email']).first()
+    if not user:
+        return jsonify({'error': 'User not found'}), 404
+    # Find all users who have sent a request to this user
+    results = db.session.execute(
+        follow_requests.select().where(follow_requests.c.target_id == user.id)
+    ).fetchall()
+    requester_ids = [row.requester_id for row in results]
+    requesters = User.query.filter(User.id.in_(requester_ids)).all() if requester_ids else []
+    return jsonify([
+        {
+            'username': u.username,
+            'display_name': u.display_name,
+            'profile_pic': u.profile_pic
+        } for u in requesters
+    ]), 200
+
+
+# Get sent follow requests (pending)
+@users_bp.route('/api/user/follow-requests/sent', methods=['GET'])
+@jwt_required
+def get_sent_follow_requests():
+    user = User.query.filter_by(email=g.jwt['email']).first()
+    if not user:
+        return jsonify({'error': 'User not found'}), 404
+    results = db.session.execute(
+        follow_requests.select().where(follow_requests.c.requester_id == user.id)
+    ).fetchall()
+    target_ids = [row.target_id for row in results]
+    targets = User.query.filter(User.id.in_(target_ids)).all() if target_ids else []
+    return jsonify([
+        {
+            'username': u.username,
+            'display_name': u.display_name,
+            'profile_pic': u.profile_pic
+        } for u in targets
+    ]), 200
+
+
+# Accept a follow request
+@users_bp.route('/api/user/follow-request/accept', methods=['POST'])
+@jwt_required
+def accept_follow_request():
+    data = request.get_json()
+    if not data or 'requester_username' not in data:
+        return jsonify({'error': 'requester_username is required'}), 400
+    user = User.query.filter_by(email=g.jwt['email']).first()
+    if not user:
+        return jsonify({'error': 'User not found'}), 404
+    requester = User.query.filter_by(username=data['requester_username']).first()
+    if not requester:
+        return jsonify({'error': 'Requester user not found'}), 404
+    # Check if request exists
+    exists = db.session.execute(
+        follow_requests.select().where(
+            (follow_requests.c.requester_id == requester.id) & (follow_requests.c.target_id == user.id)
+        )
+    ).first()
+    if not exists:
+        return jsonify({'error': 'No such follow request'}), 404
+    # Add to followers
+    db.session.execute(followers.insert().values(follower_id=requester.id, followed_id=user.id))
+    # Remove request
+    db.session.execute(
+        follow_requests.delete().where(
+            (follow_requests.c.requester_id == requester.id) & (follow_requests.c.target_id == user.id)
+        )
+    )
+    db.session.commit()
+    return jsonify({'message': 'Follow request accepted'}), 200
+
+
+# Reject a follow request
+@users_bp.route('/api/user/follow-request/reject', methods=['POST'])
+@jwt_required
+def reject_follow_request():
+    data = request.get_json()
+    if not data or 'requester_username' not in data:
+        return jsonify({'error': 'requester_username is required'}), 400
+    user = User.query.filter_by(email=g.jwt['email']).first()
+    if not user:
+        return jsonify({'error': 'User not found'}), 404
+    requester = User.query.filter_by(username=data['requester_username']).first()
+    if not requester:
+        return jsonify({'error': 'Requester user not found'}), 404
+    # Check if request exists
+    exists = db.session.execute(
+        follow_requests.select().where(
+            (follow_requests.c.requester_id == requester.id) & (follow_requests.c.target_id == user.id)
+        )
+    ).first()
+    if not exists:
+        return jsonify({'error': 'No such follow request'}), 404
+    # Remove request
+    db.session.execute(
+        follow_requests.delete().where(
+            (follow_requests.c.requester_id == requester.id) & (follow_requests.c.target_id == user.id)
+        )
+    )
+    db.session.commit()
+    return jsonify({'message': 'Follow request rejected'}), 200
+
+
+# Cancel a sent follow request (optional)
+@users_bp.route('/api/user/follow-request/cancel', methods=['POST'])
+@jwt_required
+def cancel_follow_request():
+    data = request.get_json()
+    if not data or 'target_username' not in data:
+        return jsonify({'error': 'target_username is required'}), 400
+    user = User.query.filter_by(email=g.jwt['email']).first()
+    if not user:
+        return jsonify({'error': 'User not found'}), 404
+    target = User.query.filter_by(username=data['target_username']).first()
+    if not target:
+        return jsonify({'error': 'Target user not found'}), 404
+    # Check if request exists
+    exists = db.session.execute(
+        follow_requests.select().where(
+            (follow_requests.c.requester_id == user.id) & (follow_requests.c.target_id == target.id)
+        )
+    ).first()
+    if not exists:
+        return jsonify({'error': 'No such follow request'}), 404
+    # Remove request
+    db.session.execute(
+        follow_requests.delete().where(
+            (follow_requests.c.requester_id == user.id) & (follow_requests.c.target_id == target.id)
+        )
+    )
+    db.session.commit()
+    return jsonify({'message': 'Follow request cancelled'}), 200
+
+def get_user_id_by_email(email):
+    """Helper function to get a user's id by email. Returns None if not found."""
+    user = User.query.filter_by(email=email).first()
+    return user.id if user else None
