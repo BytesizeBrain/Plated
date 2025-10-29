@@ -7,9 +7,11 @@ import { getFeedPosts, getUnreadCount } from '../../utils/api';
 import { isAuthenticated } from '../../utils/auth';
 import PostCard from '../../components/feed/PostCard';
 import FeedFilters from '../../components/feed/FeedFilters';
-import FeedModeToggle, { FeedMode } from '../../components/feed/FeedModeToggle';
+import FeedModeToggle from '../../components/feed/FeedModeToggle';
 import ChatbotPopup from '../../components/ChatbotPopup';
 import './FeedPage.css';
+
+type FeedMode = 'feed' | 'challenges' | 'messages';
 
 function FeedPage() {
   const navigate = useNavigate();

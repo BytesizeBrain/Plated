@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import './FeedModeToggle.css';
 
 export type FeedMode = 'feed' | 'challenges' | 'messages';

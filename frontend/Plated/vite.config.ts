@@ -12,4 +12,6 @@ export default defineConfig({
     host: true,
     allowedHosts: true,
   },
+  // Configure app entry point and ensure SPA routing works
+  appType: 'spa',
 })
