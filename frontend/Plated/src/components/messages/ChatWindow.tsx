@@ -19,7 +19,7 @@ function ChatWindow({ conversation, onBack }: ChatWindowProps) {
   useEffect(() => {
     loadMessages();
     markConversationAsRead();
-  }, [conversation.id]);
+  }, [conversation.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const loadMessages = async () => {
     try {
@@ -27,8 +27,9 @@ function ChatWindow({ conversation, onBack }: ChatWindowProps) {
       setError(null);
       const data = await getConversationMessages(conversation.id);
       setMessages(conversation.id, data);
-    } catch (err: any) {
-      setError(err.response?.data?.error || 'Failed to load messages');
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to load messages';
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }

@@ -27,6 +27,12 @@ export const removeToken = (): void => {
  * Check if user is authenticated
  */
 export const isAuthenticated = (): boolean => {
+  // TEMPORARY: Skip authentication for frontend testing
+  // Remove this line when backend is properly configured
+  if (import.meta.env.DEV) {
+    return true;
+  }
+  
   const token = getToken();
   if (!token) return false;
 
@@ -35,7 +41,7 @@ export const isAuthenticated = (): boolean => {
     // Check if token is expired
     const currentTime = Math.floor(Date.now() / 1000);
     return payload.exp > currentTime;
-  } catch (error) {
+  } catch {
     return false;
   }
 };

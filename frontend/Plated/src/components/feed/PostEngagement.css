@@ -57,6 +57,12 @@
 }
 
 /* Save button */
+.save-btn {
+  padding: 0.5rem !important;
+  min-width: auto !important;
+  flex-shrink: 0;
+}
+
 .save-btn.active {
   color: #667eea;
 }

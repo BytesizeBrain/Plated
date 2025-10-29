@@ -19,7 +19,7 @@ function CommentSection({ postId }: CommentSectionProps) {
 
   useEffect(() => {
     loadComments();
-  }, [postId]);
+  }, [postId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const loadComments = async () => {
     try {
@@ -27,8 +27,9 @@ function CommentSection({ postId }: CommentSectionProps) {
       setError('');
       const data = await getPostComments(postId);
       setComments(data);
-    } catch (err: any) {
-      setError(err.response?.data?.error || 'Failed to load comments');
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to load comments';
+      setError(errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -46,8 +47,9 @@ function CommentSection({ postId }: CommentSectionProps) {
       setComments([...comments, comment]);
       setNewComment('');
       incrementCommentCount(postId);
-    } catch (err: any) {
-      setError(err.response?.data?.error || 'Failed to post comment');
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to post comment';
+      setError(errorMessage);
     } finally {
       setIsSubmitting(false);
     }

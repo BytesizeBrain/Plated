@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { format, isSameDay, isToday, isYesterday } from 'date-fns';
 import type { Message } from '../../types';
 import { useMessageStore } from '../../stores/messageStore';
@@ -15,7 +15,7 @@ function MessageThread({ messages, conversationId }: MessageThreadProps) {
   const { typingIndicators } = useMessageStore();
   const [currentUserId, setCurrentUserId] = useState<string>('');
 
-  const typingUsers = typingIndicators[conversationId] || [];
+  const typingUsers = useMemo(() => typingIndicators[conversationId] || [], [typingIndicators, conversationId]);
 
   useEffect(() => {
     // Get current user ID

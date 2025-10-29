@@ -33,6 +33,48 @@
   margin: 0;
 }
 
+/* Search Bar */
+.feed-search {
+  flex: 1;
+  max-width: 500px;
+  margin: 0 2rem;
+}
+
+.search-input-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.search-icon {
+  position: absolute;
+  left: 1rem;
+  color: #a0a0b8;
+  z-index: 1;
+}
+
+.search-input {
+  width: 100%;
+  padding: 0.75rem 1rem 0.75rem 3rem;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 25px;
+  color: #ffffff;
+  font-size: 0.9rem;
+  transition: all 0.2s;
+}
+
+.search-input::placeholder {
+  color: #a0a0b8;
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: #667eea;
+  background: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
 .feed-nav {
   display: flex;
   gap: 1rem;
@@ -181,10 +223,23 @@
 @media (max-width: 768px) {
   .feed-header-content {
     padding: 1rem;
+    flex-wrap: wrap;
+    gap: 1rem;
   }
 
   .feed-logo {
     font-size: 1.25rem;
+  }
+
+  .feed-search {
+    order: 3;
+    flex: 1 1 100%;
+    margin: 0;
+    max-width: none;
+  }
+
+  .feed-nav {
+    gap: 0.5rem;
   }
 
   .feed-content {
@@ -194,4 +249,15 @@
   .feed-posts {
     gap: 1rem;
   }
+}
+
+/* Chatbot Button */
+.chatbot-icon {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white !important;
+}
+
+.chatbot-icon:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
 }

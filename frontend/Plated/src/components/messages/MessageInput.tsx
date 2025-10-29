@@ -50,7 +50,7 @@ function MessageInput({ conversationId }: MessageInputProps) {
       // Replace temp message with real one
       // In a real app, we'd remove the temp message and add the real one
       // For now, the backend response will have the correct ID
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Failed to send message:', err);
       alert('Failed to send message. Please try again.');
     } finally {

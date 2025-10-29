@@ -6,6 +6,7 @@ import { getFeedPosts, getUnreadCount } from '../../utils/api';
 import { isAuthenticated } from '../../utils/auth';
 import PostCard from '../../components/feed/PostCard';
 import FeedFilters from '../../components/feed/FeedFilters';
+import ChatbotPopup from '../../components/ChatbotPopup';
 import './FeedPage.css';
 
 function FeedPage() {
@@ -28,6 +29,8 @@ function FeedPage() {
 
   const { unreadCount, setUnreadCount } = useMessageStore();
   const [initialLoad, setInitialLoad] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [showChatbot, setShowChatbot] = useState(false);
   const observerTarget = useRef<HTMLDivElement>(null);
 
   // Auth check
@@ -67,8 +70,9 @@ function FeedPage() {
       }
 
       setHasMore(has_more);
-    } catch (err: any) {
-      setError(err.response?.data?.error || 'Failed to load feed');
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to load feed';
+      setError(errorMessage);
     } finally {
       setLoading(false);
       setInitialLoad(false);
@@ -78,12 +82,12 @@ function FeedPage() {
   // Load initial posts
   useEffect(() => {
     loadPosts();
-  }, [currentPage]);
+  }, [currentPage]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Reset feed when filter changes
   useEffect(() => {
     resetFeed();
-  }, [filter.type, filter.cuisine, filter.difficulty, filter.max_time, filter.sort_by]);
+  }, [filter.type, filter.cuisine, filter.difficulty, filter.max_time, filter.sort_by]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Infinite scroll observer
   useEffect(() => {
@@ -108,12 +112,52 @@ function FeedPage() {
     };
   }, [hasMore, isLoading, incrementPage]);
 
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      navigate(`/explore?q=${encodeURIComponent(searchQuery.trim())}`);
+    }
+  };
+
+  const handleSearchInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchQuery(e.target.value);
+  };
+
   return (
     <div className="feed-page">
       {/* Header */}
       <header className="feed-header">
         <div className="feed-header-content">
           <h1 className="feed-logo">Plated</h1>
+          
+          {/* Search Bar */}
+          <form className="feed-search" onSubmit={handleSearch}>
+            <div className="search-input-container">
+              <svg
+                className="search-icon"
+                xmlns="http://www.w3.org/2000/svg"
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <circle cx="11" cy="11" r="8"></circle>
+                <path d="m21 21-4.35-4.35"></path>
+              </svg>
+              <input
+                type="text"
+                placeholder="Search recipes, cuisines, ingredients..."
+                value={searchQuery}
+                onChange={handleSearchInputChange}
+                className="search-input"
+              />
+            </div>
+          </form>
+
           <nav className="feed-nav">
             <button
               className="nav-icon-btn"
@@ -133,6 +177,26 @@ function FeedPage() {
               >
                 <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
                 <circle cx="12" cy="7" r="4"></circle>
+              </svg>
+            </button>
+            <button
+              className="nav-icon-btn chatbot-icon"
+              onClick={() => setShowChatbot(true)}
+              aria-label="Cooking Assistant"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M9 12l2 2 4-4"></path>
+                <path d="M21 12c0 4.97-4.03 9-9 9s-9-4.03-9-9 4.03-9 9-9c1.5 0 2.91.37 4.15 1.02"></path>
               </svg>
             </button>
             <button
@@ -222,6 +286,12 @@ function FeedPage() {
           </>
         )}
       </main>
+
+      {/* Chatbot Popup */}
+      <ChatbotPopup 
+        isOpen={showChatbot} 
+        onClose={() => setShowChatbot(false)} 
+      />
     </div>
   );
 }

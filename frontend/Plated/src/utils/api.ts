@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { getToken, removeToken } from './auth';
+import { mockFeedPosts, mockConversations, mockCurrentUser } from '../data/mockData';
 import type {
   RegisterData,
   UpdateUserData,
@@ -65,6 +66,13 @@ export const registerUser = async (data: RegisterData): Promise<void> => {
  * Get current user's profile
  */
 export const getUserProfile = async (): Promise<UserProfile> => {
+  // Use mock data in development
+  if (import.meta.env.DEV) {
+    return new Promise((resolve) => {
+      setTimeout(() => resolve(mockCurrentUser), 500);
+    });
+  }
+  
   const response = await api.get<UserProfile>('/api/user/profile');
   return response.data;
 };
@@ -92,6 +100,19 @@ export const checkUsername = async (username: string): Promise<boolean> => {
  * Get feed posts with pagination
  */
 export const getFeedPosts = async (page: number = 1, filter?: FeedFilter): Promise<{ posts: FeedPost[], has_more: boolean }> => {
+  // Use mock data in development
+  if (import.meta.env.DEV) {
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        const startIndex = (page - 1) * 10;
+        const endIndex = startIndex + 10;
+        const posts = mockFeedPosts.slice(startIndex, endIndex);
+        const hasMore = endIndex < mockFeedPosts.length;
+        resolve({ posts, has_more: hasMore });
+      }, 800);
+    });
+  }
+  
   const response = await api.get('/api/feed', {
     params: {
       page,
@@ -163,6 +184,13 @@ export const sharePost = async (postId: string): Promise<void> => {
  * Get all conversations for the current user
  */
 export const getConversations = async (): Promise<Conversation[]> => {
+  // Use mock data in development
+  if (import.meta.env.DEV) {
+    return new Promise((resolve) => {
+      setTimeout(() => resolve(mockConversations), 600);
+    });
+  }
+  
   const response = await api.get<Conversation[]>('/api/messages/conversations');
   return response.data;
 };
@@ -194,6 +222,16 @@ export const markMessagesAsRead = async (conversationId: string): Promise<void> 
  * Get unread message count
  */
 export const getUnreadCount = async (): Promise<number> => {
+  // Use mock data in development
+  if (import.meta.env.DEV) {
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        const totalUnread = mockConversations.reduce((sum, conv) => sum + conv.unread_count, 0);
+        resolve(totalUnread);
+      }, 300);
+    });
+  }
+  
   const response = await api.get<{ count: number }>('/api/messages/unread');
   return response.data.count;
 };

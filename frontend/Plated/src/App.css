@@ -242,6 +242,23 @@ body {
   background: #5568d3;
 }
 
+.feed-btn {
+  padding: 14px 24px;
+  background: #2ecc71;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-top: 12px;
+}
+
+.feed-btn:hover {
+  background: #27ae60;
+}
+
 .profile-edit-form {
   display: flex;
   flex-direction: column;

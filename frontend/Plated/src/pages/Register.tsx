@@ -34,7 +34,7 @@ function Register() {
         await getUserProfile();
         // If successful, user already exists - redirect to profile
         navigate('/profile');
-      } catch (err) {
+      } catch {
         // If 404 or other error, user needs to complete registration
         // Get user info from token and pre-fill form
         const userInfo = getUserFromToken();
@@ -46,7 +46,7 @@ function Register() {
     };
 
     initRegister();
-  }, [navigate]);
+  }, [navigate]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Check username availability with debounce
   useEffect(() => {
@@ -101,9 +101,10 @@ function Register() {
       
       // Registration successful, redirect to profile
       navigate('/profile');
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Registration failed:', err);
-      setError(err.response?.data?.error || 'Failed to complete registration. Please try again.');
+      const errorMessage = err instanceof Error ? err.message : 'Failed to complete registration. Please try again.';
+      setError(errorMessage);
     } finally {
       setIsSubmitting(false);
     }
