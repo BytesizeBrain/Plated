@@ -1,0 +1,132 @@
+.streak-flame-container {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 16px;
+  background: linear-gradient(135deg, #ff6b6b 0%, #ff5252 100%);
+  border-radius: 12px;
+  color: white;
+}
+
+.streak-flame {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.flame-icon {
+  position: relative;
+}
+
+.flame-icon svg {
+  color: #ffd700;
+  filter: drop-shadow(0 0 8px rgba(255, 215, 0, 0.6));
+  animation: flicker 2s ease-in-out infinite;
+}
+
+@keyframes flicker {
+  0%, 100% {
+    transform: scale(1) translateY(0);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.05) translateY(-2px);
+    opacity: 0.9;
+  }
+}
+
+.streak-info {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.2;
+}
+
+.streak-count {
+  font-size: 28px;
+  font-weight: 800;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.streak-label {
+  font-size: 12px;
+  opacity: 0.95;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.streak-timer {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.streak-timer svg {
+  opacity: 0.9;
+}
+
+.freeze-tokens {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.freeze-icon {
+  font-size: 18px;
+}
+
+.use-freeze-btn {
+  margin-left: auto;
+  padding: 4px 12px;
+  background: white;
+  color: #ff6b6b;
+  border: none;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.use-freeze-btn:hover {
+  background: #f8f8f8;
+  transform: scale(1.05);
+}
+
+.use-freeze-btn:active {
+  transform: scale(0.95);
+}
+
+@media (max-width: 768px) {
+  .streak-flame-container {
+    padding: 12px;
+  }
+
+  .flame-icon svg {
+    width: 28px;
+    height: 28px;
+  }
+
+  .streak-count {
+    font-size: 24px;
+  }
+
+  .streak-label {
+    font-size: 11px;
+  }
+
+  .streak-timer,
+  .freeze-tokens {
+    font-size: 11px;
+  }
+}

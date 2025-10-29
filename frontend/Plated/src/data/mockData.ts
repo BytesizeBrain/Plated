@@ -1,4 +1,18 @@
-import type { FeedPost, Conversation, Message, UserProfile } from '../types';
+import type { FeedPost, Conversation, Message, UserProfile, MockConfig } from '../types';
+
+// Mock Configuration for testing without backend
+export const mockConfig: MockConfig = {
+  enabled: import.meta.env.DEV, // Enable mock mode in development
+  features: {
+    feed: true,
+    messages: true,
+    challenges: true,
+    rewards: true,
+    squads: true,
+    leaderboards: true,
+    market: true,
+  },
+};
 
 // Mock Users
 export const mockUsers: UserProfile[] = [
