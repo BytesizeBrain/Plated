@@ -23,8 +23,49 @@ app = Flask(__name__)
 def home():
     return "Flask and Supabase backend is running."
 
+@app.route("/posts", methods=["POST"])
+def create_post():
+    data = request.get_json()
+
+    user_id = data.get("user_id")
+    image_url = data.get("image_url")
+    description = data.get("description")
+
+    if not user_id:
+        return jsonify({"Error": "Missing user_id"}), 400
+
+    try:
+        response = supabase.table("posts").insert({
+            "user_id": user_id,
+            "image_url": image_url,
+            "description": description
+        }).execute()
+
+        return jsonify(response.data), 201
+    except Exception as e:
+        return jsonify({"Error": str(e)}), 500
+
+# Get all posts
+@app.route("/getPosts", methods=["GET"])
+def get_all_posts():
+    try:
+        response = supabase.table("posts").select("*").order("created_at", desc=True).execute()
+        return jsonify(response.data), 200
+    except Exception as e:
+        return jsonify({"Error": str(e)}), 500
+
+# Get posts from one user. View a user's profile and their posts
+@app.route("/posts/user/<user_id>", methods=["GET"])
+def get_user_posts(user_id):
+    try:
+        response = supabase.table("posts").select("*").eq("user_id", user_id).order("created_at", desc=True).execute()
+        return jsonify(response.data), 200
+    except Exception as e:
+        return jsonify({"Error": str(e)}), 500
+
+
 #Get all recipes
-@app.route("/get", methods=["GET"])
+@app.route("/getRecipes", methods=["GET"])
 def get_recipes():
     response = supabase.table("recipes").select("*").execute()
     return jsonify(response.data)
