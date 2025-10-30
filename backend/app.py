@@ -24,13 +24,13 @@ def home():
     return "Flask and Supabase backend is running."
 
 #Get all recipes
-@app.route("/recipes", methods=["GET"])
+@app.route("/get", methods=["GET"])
 def get_recipes():
-    respones = supabase.table("recipes").select("*").execute()
+    response = supabase.table("recipes").select("*").execute()
     return jsonify(response.data)
 
 #Create a new recipe
-@app.route("/recipes", methods=["POST"])
+@app.route("/post", methods=["POST"])
 def create_recipe():
     data = request.get_json()
     response = supabase.table("recipes").insert(data).execute()
