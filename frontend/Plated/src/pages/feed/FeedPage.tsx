@@ -2,16 +2,13 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useFeedStore } from '../../stores/feedStore';
 import { useMessageStore } from '../../stores/messageStore';
-import { useGamificationStore } from '../../stores/gamificationStore';
 import { getFeedPosts, getUnreadCount } from '../../utils/api';
 import { isAuthenticated } from '../../utils/auth';
 import PostCard from '../../components/feed/PostCard';
 import FeedFilters from '../../components/feed/FeedFilters';
-import FeedModeToggle from '../../components/feed/FeedModeToggle';
 import ChatbotPopup from '../../components/ChatbotPopup';
+import BottomNav from '../../components/navigation/BottomNav';
 import './FeedPage.css';
-
-type FeedMode = 'feed' | 'challenges' | 'messages';
 
 function FeedPage() {
   const navigate = useNavigate();
@@ -32,21 +29,10 @@ function FeedPage() {
   } = useFeedStore();
 
   const { unreadCount, setUnreadCount } = useMessageStore();
-  const { activeChallenges } = useGamificationStore();
   const [initialLoad, setInitialLoad] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [showChatbot, setShowChatbot] = useState(false);
-  const [feedMode, setFeedMode] = useState<FeedMode>('feed');
   const observerTarget = useRef<HTMLDivElement>(null);
-
-  const handleModeChange = (mode: FeedMode) => {
-    setFeedMode(mode);
-    if (mode === 'challenges') {
-      navigate('/challenges');
-    } else if (mode === 'messages') {
-      navigate('/messages');
-    }
-  };
 
   // Auth check
   useEffect(() => {
@@ -237,14 +223,6 @@ function FeedPage() {
         </div>
       </header>
 
-      {/* Feed Mode Toggle */}
-      <FeedModeToggle
-        currentMode={feedMode}
-        onModeChange={handleModeChange}
-        unreadCount={unreadCount}
-        activeChallengesCount={activeChallenges.length}
-      />
-
       {/* Filters */}
       <FeedFilters />
 
@@ -314,6 +292,9 @@ function FeedPage() {
         isOpen={showChatbot} 
         onClose={() => setShowChatbot(false)} 
       />
+
+      {/* Bottom Navigation */}
+      <BottomNav />
     </div>
   );
 }

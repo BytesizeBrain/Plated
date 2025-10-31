@@ -5,6 +5,7 @@ import { useMessageStore } from '../../stores/messageStore';
 import { getConversations } from '../../utils/api';
 import ConversationList from '../../components/messages/ConversationList';
 import ChatWindow from '../../components/messages/ChatWindow';
+import BottomNav from '../../components/navigation/BottomNav';
 import './DirectMessagesPage.css';
 
 function DirectMessagesPage() {
@@ -256,6 +257,9 @@ function DirectMessagesPage() {
           </div>
         </div>
       )}
+
+      {/* Bottom Navigation */}
+      <BottomNav />
     </div>
   );
 }

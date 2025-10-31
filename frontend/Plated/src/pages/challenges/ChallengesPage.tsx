@@ -6,6 +6,7 @@ import type { Challenge } from '../../types';
 import XPBar from '../../components/gamification/XPBar';
 import CoinWallet from '../../components/gamification/CoinWallet';
 import StreakFlame from '../../components/gamification/StreakFlame';
+import BottomNav from '../../components/navigation/BottomNav';
 import './ChallengesPage.css';
 
 function ChallengesPage() {
@@ -294,6 +295,9 @@ function ChallengesPage() {
           )}
         </div>
       </div>
+
+      {/* Bottom Navigation */}
+      <BottomNav />
     </div>
   );
 }
