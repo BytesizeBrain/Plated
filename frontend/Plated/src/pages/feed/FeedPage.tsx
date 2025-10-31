@@ -7,6 +7,7 @@ import { isAuthenticated } from '../../utils/auth';
 import PostCard from '../../components/feed/PostCard';
 import FeedFilters from '../../components/feed/FeedFilters';
 import ChatbotPopup from '../../components/ChatbotPopup';
+import BottomNav from '../../components/navigation/BottomNav';
 import './FeedPage.css';
 
 function FeedPage() {
@@ -161,6 +162,25 @@ function FeedPage() {
           <nav className="feed-nav">
             <button
               className="nav-icon-btn"
+              onClick={() => navigate('/saved')}
+              aria-label="Saved Posts"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
+              </svg>
+            </button>
+            <button
+              className="nav-icon-btn"
               onClick={() => navigate('/profile')}
               aria-label="Profile"
             >
@@ -198,26 +218,6 @@ function FeedPage() {
                 <path d="M9 12l2 2 4-4"></path>
                 <path d="M21 12c0 4.97-4.03 9-9 9s-9-4.03-9-9 4.03-9 9-9c1.5 0 2.91.37 4.15 1.02"></path>
               </svg>
-            </button>
-            <button
-              className="nav-icon-btn dm-icon"
-              onClick={() => navigate('/messages')}
-              aria-label="Messages"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
-              </svg>
-              {unreadCount > 0 && <span className="unread-badge">{unreadCount}</span>}
             </button>
           </nav>
         </div>
@@ -292,6 +292,9 @@ function FeedPage() {
         isOpen={showChatbot} 
         onClose={() => setShowChatbot(false)} 
       />
+
+      {/* Bottom Navigation */}
+      <BottomNav />
     </div>
   );
 }
