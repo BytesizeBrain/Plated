@@ -68,7 +68,7 @@ function Profile() {
     };
 
     initProfile();
-  }, [navigate]);
+  }, [navigate, searchParams]);
 
   // Check username availability when editing
   useEffect(() => {
@@ -139,7 +139,7 @@ function Profile() {
     setIsSubmitting(true);
 
     try {
-      const updateData: any = {};
+      const updateData: Record<string, unknown> = {};
       
       if (editUsername && editUsername !== username) {
         updateData.username = editUsername;
@@ -166,9 +166,10 @@ function Profile() {
       
       setIsEditing(false);
       setSuccessMessage('Profile updated successfully!');
-    } catch (err: any) {
+    } catch (err) {
       console.error('Update failed:', err);
-      setError(err.response?.data?.error || 'Failed to update profile. Please try again.');
+      const maybeAxios = err as { response?: { data?: { error?: string } } };
+      setError(maybeAxios.response?.data?.error || 'Failed to update profile. Please try again.');
     } finally {
       setIsSubmitting(false);
     }

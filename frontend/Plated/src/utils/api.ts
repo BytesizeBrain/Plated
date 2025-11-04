@@ -1,9 +1,31 @@
 import axios from 'axios';
+type HttpError = { response?: { status?: number } };
 import { getToken, removeToken } from './auth';
-import type { RegisterData, UpdateUserData, CheckUsernameResponse, UserProfile } from '../types';
+import { mockFeedPosts, mockConversations, mockCurrentUser, mockComments, mockMessages } from '../data/mockData';
+import { mockChallenges, mockRewardsSummary } from '../data/mockGamificationData';
+import type {
+  RegisterData,
+  UpdateUserData,
+  CheckUsernameResponse,
+  UserProfile,
+  FeedPost,
+  Comment,
+  Conversation,
+  Message,
+  SendMessageData,
+  FeedFilter,
+  Challenge,
+  RewardSummary
+} from '../types';
 
 // Base URL for the backend API
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
+const AUTH_MODE = (import.meta.env.VITE_AUTH_MODE || 'oauth').toString().toLowerCase();
+
+// Validate environment variable in production
+if (import.meta.env.PROD && !import.meta.env.VITE_API_BASE_URL) {
+  console.warn('⚠️ VITE_API_BASE_URL is not set in production. Defaulting to localhost:5000. This may cause API calls to fail.');
+}
 
 // Create axios instance
 const api = axios.create({
@@ -11,14 +33,20 @@ const api = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
+  timeout: 10000, // 10 second timeout
 });
 
 // Request interceptor to add JWT token
 api.interceptors.request.use(
   (config) => {
-    const token = getToken();
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
+    // In mock mode, do not attach Authorization header
+    if (AUTH_MODE !== 'mock') {
+      const token = getToken();
+      if (token) {
+        const headers = (config.headers ?? {}) as Record<string, string>;
+        headers.Authorization = `Bearer ${token}`;
+        config.headers = headers;
+      }
     }
     return config;
   },
@@ -31,9 +59,9 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    // If we get a 401, remove the token and redirect to login
-    // But only if we're not already on the login page
-    if (error.response?.status === 401) {
+    // If we get a 401 in oauth mode, clear token and redirect to login
+    // In mock mode, do NOT redirect; allow fallbacks to handle
+    if (error.response?.status === 401 && AUTH_MODE !== 'mock') {
       removeToken();
       if (window.location.pathname !== '/login') {
         window.location.href = '/login';
@@ -42,6 +70,52 @@ api.interceptors.response.use(
     return Promise.reject(error);
   }
 );
+
+// ===== HELPER: Smart Fallback Utility =====
+
+/**
+ * Attempts to call the API, but falls back to mock data if the API fails.
+ * This allows the app to work without a backend, but automatically use real data when available.
+ * 
+ * @param apiCall - Function that returns a promise from the API
+ * @param mockData - Mock data to use as fallback
+ * @param featureName - Name of the feature (for logging)
+ * @returns Promise that resolves to either API data or mock data
+ */
+async function withFallback<T>(
+  apiCall: () => Promise<T>,
+  mockData: T,
+  featureName: string
+): Promise<T> {
+  try {
+    const result = await apiCall();
+    // If API call succeeds and returns data, use it
+    if (result !== null && result !== undefined) {
+      console.log(`✅ ${featureName}: Using real API data`);
+      return result;
+    }
+    // If API returns null/undefined, fall back to mock
+    console.warn(`⚠️ ${featureName}: API returned empty data, using mock fallback`);
+    return mockData;
+  } catch (error) {
+    // Check if it's a network error or backend not available
+    const isNetworkError = 
+      !(error as HttpError).response || // No response (network error)
+      (error as HttpError).response?.status === 404 || // Endpoint not found
+      ((error as HttpError).response?.status ?? 0) >= 500 || // Server error
+      // In mock mode, also treat 401/403 as reasons to use mock
+      (AUTH_MODE === 'mock' && (((error as HttpError).response?.status === 401) || ((error as HttpError).response?.status === 403)));
+    
+    if (isNetworkError) {
+      console.warn(`⚠️ ${featureName}: Backend unavailable, using mock data fallback`);
+      return mockData;
+    }
+    
+    // For other errors (like 401, 403), re-throw to let caller handle
+    console.error(`❌ ${featureName}: API error`, error);
+    throw error;
+  }
+}
 
 /**
  * Register a new user after OAuth
@@ -52,27 +126,323 @@ export const registerUser = async (data: RegisterData): Promise<void> => {
 
 /**
  * Get current user's profile
+ * Falls back to mock data if backend is unavailable
  */
 export const getUserProfile = async (): Promise<UserProfile> => {
-  const response = await api.get<UserProfile>('/api/user/profile');
-  return response.data;
+  return withFallback(
+    async () => {
+      const response = await api.get<UserProfile>('/api/user/profile');
+      return response.data;
+    },
+    mockCurrentUser,
+    'User Profile'
+  );
 };
 
 /**
  * Update user profile
+ * If backend is unavailable, this will fail (no mock fallback for write operations)
  */
 export const updateUser = async (data: UpdateUserData): Promise<void> => {
-  await api.put('/api/user/update', data);
+  try {
+    await api.put('/api/user/update', data);
+  } catch (error) {
+    if (!(error as HttpError).response) {
+      throw new Error('Unable to connect to server. Please check your connection.');
+    }
+    throw error;
+  }
 };
 
 /**
  * Check if a username is available
+ * Falls back to mock check (always returns true - available) if backend is unavailable
  */
 export const checkUsername = async (username: string): Promise<boolean> => {
-  const response = await api.get<CheckUsernameResponse>('/api/user/check_username', {
-    params: { username },
-  });
-  return !response.data.exists; // Return true if username is available
+  return withFallback(
+    async () => {
+      const response = await api.get<CheckUsernameResponse>('/api/user/check_username', {
+        params: { username },
+      });
+      return !response.data.exists; // Return true if username is available
+    },
+    true, // Mock: always return true (username available) when backend is down
+    'Username Check'
+  );
+};
+
+// ===== FEED API =====
+
+/**
+ * Get feed posts with pagination
+ * Falls back to mock data if backend is unavailable
+ */
+export const getFeedPosts = async (page: number = 1, filter?: FeedFilter): Promise<{ posts: FeedPost[], has_more: boolean }> => {
+  return withFallback(
+    async () => {
+      const response = await api.get('/api/feed', {
+        params: {
+          page,
+          limit: 10,
+          type: filter?.type,
+          cuisine: filter?.cuisine,
+          difficulty: filter?.difficulty,
+          max_time: filter?.max_time,
+          sort_by: filter?.sort_by,
+        },
+      });
+      return response.data;
+    },
+    (() => {
+      // Mock data fallback with pagination
+      const startIndex = (page - 1) * 10;
+      const endIndex = startIndex + 10;
+      const posts = mockFeedPosts.slice(startIndex, endIndex);
+      const hasMore = endIndex < mockFeedPosts.length;
+      return { posts, has_more: hasMore };
+    })(),
+    'Feed Posts'
+  );
+};
+
+/**
+ * Like a post
+ * If backend is unavailable, this will fail (no mock fallback for write operations)
+ */
+export const likePost = async (postId: string): Promise<void> => {
+  try {
+    await api.post(`/api/posts/${postId}/like`);
+  } catch (error) {
+    if (!(error as HttpError).response) {
+      throw new Error('Unable to connect to server. Please check your connection.');
+    }
+    throw error;
+  }
+};
+
+/**
+ * Unlike a post
+ */
+export const unlikePost = async (postId: string): Promise<void> => {
+  await api.post(`/api/posts/${postId}/unlike`);
+};
+
+/**
+ * Save a post
+ */
+export const savePost = async (postId: string): Promise<void> => {
+  await api.post(`/api/posts/${postId}/save`);
+};
+
+/**
+ * Unsave a post
+ */
+export const unsavePost = async (postId: string): Promise<void> => {
+  await api.post(`/api/posts/${postId}/unsave`);
+};
+
+/**
+ * Get comments for a post
+ * Falls back to mock data if backend is unavailable
+ */
+export const getPostComments = async (postId: string): Promise<Comment[]> => {
+  return withFallback(
+    async () => {
+      const response = await api.get<Comment[]>(`/api/posts/${postId}/comments`);
+      return response.data;
+    },
+    mockComments.filter(c => c.post_id === postId),
+    'Post Comments'
+  );
+};
+
+/**
+ * Add a comment to a post
+ */
+export const addComment = async (postId: string, content: string): Promise<Comment> => {
+  const response = await api.post<Comment>(`/api/posts/${postId}/comments`, { content });
+  return response.data;
+};
+
+/**
+ * Share a post
+ */
+export const sharePost = async (postId: string): Promise<void> => {
+  await api.post(`/api/posts/${postId}/share`);
+};
+
+// ===== MESSAGES API =====
+
+/**
+ * Get all conversations for the current user
+ * Falls back to mock data if backend is unavailable
+ */
+export const getConversations = async (): Promise<Conversation[]> => {
+  return withFallback(
+    async () => {
+      const response = await api.get<Conversation[]>('/api/messages/conversations');
+      return response.data;
+    },
+    mockConversations,
+    'Conversations'
+  );
+};
+
+/**
+ * Get messages for a specific conversation
+ * Falls back to mock data if backend is unavailable
+ */
+export const getConversationMessages = async (conversationId: string): Promise<Message[]> => {
+  return withFallback(
+    async () => {
+      const response = await api.get<Message[]>(`/api/messages/conversations/${conversationId}`);
+      return response.data;
+    },
+    mockMessages.filter(m => m.conversation_id === conversationId),
+    'Conversation Messages'
+  );
+};
+
+/**
+ * Send a message
+ */
+export const sendMessage = async (data: SendMessageData): Promise<Message> => {
+  const response = await api.post<Message>('/api/messages/send', data);
+  return response.data;
+};
+
+/**
+ * Mark messages as read
+ */
+export const markMessagesAsRead = async (conversationId: string): Promise<void> => {
+  await api.patch(`/api/messages/conversations/${conversationId}/read`);
+};
+
+/**
+ * Get unread message count
+ * Falls back to mock data if backend is unavailable
+ */
+export const getUnreadCount = async (): Promise<number> => {
+  return withFallback(
+    async () => {
+      const response = await api.get<{ count: number }>('/api/messages/unread');
+      return response.data.count;
+    },
+    mockConversations.reduce((sum, conv) => sum + conv.unread_count, 0),
+    'Unread Count'
+  );
+};
+
+/**
+ * Create or get a conversation with a user
+ */
+export const getOrCreateConversation = async (userId: string): Promise<Conversation> => {
+  const response = await api.post<Conversation>('/api/messages/conversations', { user_id: userId });
+  return response.data;
+};
+
+// ===== CHALLENGES & GAMIFICATION API =====
+
+/**
+ * Get all available challenges
+ * Falls back to mock data if backend is unavailable
+ */
+export const getChallenges = async (): Promise<Challenge[]> => {
+  return withFallback(
+    async () => {
+      const response = await api.get<Challenge[]>('/api/challenges');
+      return response.data;
+    },
+    mockChallenges,
+    'Challenges'
+  );
+};
+
+/**
+ * Get a specific challenge by ID
+ * Falls back to mock data if backend is unavailable
+ * Re-throws authentication errors (401, 403) to allow interceptor to handle them
+ */
+export const getChallenge = async (challengeId: string): Promise<Challenge | null> => {
+  try {
+    const response = await api.get<Challenge>(`/api/challenges/${challengeId}`);
+    console.log(`✅ Challenge ${challengeId}: Using real API data`);
+    return response.data;
+  } catch (error) {
+    // Check if it's an authentication error that should be re-thrown
+    const status = (error as HttpError).response?.status;
+    const isAuthError = status === 401 || status === 403;
+    
+    if (isAuthError) {
+      // Re-throw authentication errors to let the axios interceptor handle them
+      // This allows proper redirect to login page
+      console.error(`❌ Challenge ${challengeId}: Authentication error (${status}), re-throwing for interceptor`);
+      throw error;
+    }
+    
+    // Check if it's a network error or backend not available
+    const isNetworkError = 
+      !(error as HttpError).response || // No response (network error)
+      status === 404 || // Endpoint not found
+      (status && status >= 500); // Server error
+    
+    if (isNetworkError) {
+      // Try to find in mock data as fallback
+      const mockChallenge = mockChallenges.find(c => c.id === challengeId);
+      if (mockChallenge) {
+        console.warn(`⚠️ Challenge ${challengeId}: Backend unavailable, using mock data fallback`);
+        return mockChallenge;
+      }
+      // If not found in mock either, return null
+      console.error(`❌ Challenge ${challengeId}: Not found in API or mock data`);
+      return null;
+    }
+    
+    // For other errors (like 400 Bad Request), re-throw to let caller handle
+    console.error(`❌ Challenge ${challengeId}: API error`, error);
+    throw error;
+  }
+};
+
+/**
+ * Get user's rewards summary (XP, coins, badges, streak)
+ * Falls back to mock data if backend is unavailable
+ */
+export const getRewardsSummary = async (): Promise<RewardSummary> => {
+  return withFallback(
+    async () => {
+      const response = await api.get<RewardSummary>('/api/rewards/summary');
+      return response.data;
+    },
+    mockRewardsSummary,
+    'Rewards Summary'
+  );
+};
+
+/**
+ * Start a challenge
+ * If backend is unavailable, this will fail (no mock fallback for write operations)
+ */
+export const startChallenge = async (challengeId: string): Promise<void> => {
+  await api.post(`/api/challenges/${challengeId}/start`);
+};
+
+/**
+ * Save cook session progress
+ * If backend is unavailable, this will fail (no mock fallback for write operations)
+ */
+export const saveCookSession = async (sessionData: unknown): Promise<void> => {
+  await api.post('/api/sessions', sessionData);
+};
+
+/**
+ * Submit completed cook session
+ * If backend is unavailable, this will fail (no mock fallback for write operations)
+ */
+export const submitCookSession = async (sessionId: string, proofData: unknown): Promise<void> => {
+  await api.post(`/api/sessions/${sessionId}/submit`, proofData);
 };
 
 export default api;
+
+

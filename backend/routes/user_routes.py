@@ -25,6 +25,11 @@ google = oauth.register(
 # Declare this as a blueprint for user-related routes
 users_bp = Blueprint('users', __name__)
 
+@users_bp.route('/health')
+def health_check():
+    """Simple health check endpoint"""
+    return jsonify({"status": "ok", "message": "Server is running"}), 200
+
 def jwt_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
