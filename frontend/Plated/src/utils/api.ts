@@ -20,12 +20,18 @@ import type {
 // Base URL for the backend API
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
 
+// Validate environment variable in production
+if (import.meta.env.PROD && !import.meta.env.VITE_API_BASE_URL) {
+  console.warn('⚠️ VITE_API_BASE_URL is not set in production. Defaulting to localhost:5000. This may cause API calls to fail.');
+}
+
 // Create axios instance
 const api = axios.create({
   baseURL: API_BASE_URL,
   headers: {
     'Content-Type': 'application/json',
   },
+  timeout: 10000, // 10 second timeout
 });
 
 // Request interceptor to add JWT token
@@ -58,33 +64,93 @@ api.interceptors.response.use(
   }
 );
 
+// ===== HELPER: Smart Fallback Utility =====
+
+/**
+ * Attempts to call the API, but falls back to mock data if the API fails.
+ * This allows the app to work without a backend, but automatically use real data when available.
+ * 
+ * @param apiCall - Function that returns a promise from the API
+ * @param mockData - Mock data to use as fallback
+ * @param featureName - Name of the feature (for logging)
+ * @returns Promise that resolves to either API data or mock data
+ */
+async function withFallback<T>(
+  apiCall: () => Promise<T>,
+  mockData: T,
+  featureName: string
+): Promise<T> {
+  try {
+    const result = await apiCall();
+    // If API call succeeds and returns data, use it
+    if (result !== null && result !== undefined) {
+      console.log(`✅ ${featureName}: Using real API data`);
+      return result;
+    }
+    // If API returns null/undefined, fall back to mock
+    console.warn(`⚠️ ${featureName}: API returned empty data, using mock fallback`);
+    return mockData;
+  } catch (error) {
+    // Check if it's a network error or backend not available
+    const isNetworkError = 
+      !(error as any).response || // No response (network error)
+      (error as any).response?.status === 404 || // Endpoint not found
+      (error as any).response?.status >= 500; // Server error
+    
+    if (isNetworkError) {
+      console.warn(`⚠️ ${featureName}: Backend unavailable, using mock data fallback`);
+      return mockData;
+    }
+    
+    // For other errors (like 401, 403), re-throw to let caller handle
+    console.error(`❌ ${featureName}: API error`, error);
+    throw error;
+  }
+}
+
 /**
  * Register a new user after OAuth
+ * If backend is unavailable, this will fail (no mock fallback for write operations)
  */
 export const registerUser = async (data: RegisterData): Promise<void> => {
-  await api.post('/api/user/register', data);
+  try {
+    await api.post('/api/user/register', data);
+  } catch (error) {
+    if (!(error as any).response) {
+      throw new Error('Unable to connect to server. Please check your connection.');
+    }
+    throw error;
+  }
 };
 
 /**
  * Get current user's profile
+ * Falls back to mock data if backend is unavailable
  */
 export const getUserProfile = async (): Promise<UserProfile> => {
-  // Use mock data in development
-  if (import.meta.env.DEV) {
-    return new Promise((resolve) => {
-      setTimeout(() => resolve(mockCurrentUser), 500);
-    });
-  }
-  
-  const response = await api.get<UserProfile>('/api/user/profile');
-  return response.data;
+  return withFallback(
+    async () => {
+      const response = await api.get<UserProfile>('/api/user/profile');
+      return response.data;
+    },
+    mockCurrentUser,
+    'User Profile'
+  );
 };
 
 /**
  * Update user profile
+ * If backend is unavailable, this will fail (no mock fallback for write operations)
  */
 export const updateUser = async (data: UpdateUserData): Promise<void> => {
-  await api.put('/api/user/update', data);
+  try {
+    await api.put('/api/user/update', data);
+  } catch (error) {
+    if (!(error as any).response) {
+      throw new Error('Unable to connect to server. Please check your connection.');
+    }
+    throw error;
+  }
 };
 
 /**
@@ -101,40 +167,49 @@ export const checkUsername = async (username: string): Promise<boolean> => {
 
 /**
  * Get feed posts with pagination
+ * Falls back to mock data if backend is unavailable
  */
 export const getFeedPosts = async (page: number = 1, filter?: FeedFilter): Promise<{ posts: FeedPost[], has_more: boolean }> => {
-  // Use mock data in development
-  if (import.meta.env.DEV) {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        const startIndex = (page - 1) * 10;
-        const endIndex = startIndex + 10;
-        const posts = mockFeedPosts.slice(startIndex, endIndex);
-        const hasMore = endIndex < mockFeedPosts.length;
-        resolve({ posts, has_more: hasMore });
-      }, 800);
-    });
-  }
-  
-  const response = await api.get('/api/feed', {
-    params: {
-      page,
-      limit: 10,
-      type: filter?.type,
-      cuisine: filter?.cuisine,
-      difficulty: filter?.difficulty,
-      max_time: filter?.max_time,
-      sort_by: filter?.sort_by,
+  return withFallback(
+    async () => {
+      const response = await api.get('/api/feed', {
+        params: {
+          page,
+          limit: 10,
+          type: filter?.type,
+          cuisine: filter?.cuisine,
+          difficulty: filter?.difficulty,
+          max_time: filter?.max_time,
+          sort_by: filter?.sort_by,
+        },
+      });
+      return response.data;
     },
-  });
-  return response.data;
+    (() => {
+      // Mock data fallback with pagination
+      const startIndex = (page - 1) * 10;
+      const endIndex = startIndex + 10;
+      const posts = mockFeedPosts.slice(startIndex, endIndex);
+      const hasMore = endIndex < mockFeedPosts.length;
+      return { posts, has_more: hasMore };
+    })(),
+    'Feed Posts'
+  );
 };
 
 /**
  * Like a post
+ * If backend is unavailable, this will fail (no mock fallback for write operations)
  */
 export const likePost = async (postId: string): Promise<void> => {
-  await api.post(`/api/posts/${postId}/like`);
+  try {
+    await api.post(`/api/posts/${postId}/like`);
+  } catch (error) {
+    if (!(error as any).response) {
+      throw new Error('Unable to connect to server. Please check your connection.');
+    }
+    throw error;
+  }
 };
 
 /**
@@ -185,17 +260,17 @@ export const sharePost = async (postId: string): Promise<void> => {
 
 /**
  * Get all conversations for the current user
+ * Falls back to mock data if backend is unavailable
  */
 export const getConversations = async (): Promise<Conversation[]> => {
-  // Use mock data in development
-  if (import.meta.env.DEV) {
-    return new Promise((resolve) => {
-      setTimeout(() => resolve(mockConversations), 600);
-    });
-  }
-  
-  const response = await api.get<Conversation[]>('/api/messages/conversations');
-  return response.data;
+  return withFallback(
+    async () => {
+      const response = await api.get<Conversation[]>('/api/messages/conversations');
+      return response.data;
+    },
+    mockConversations,
+    'Conversations'
+  );
 };
 
 /**
@@ -223,20 +298,17 @@ export const markMessagesAsRead = async (conversationId: string): Promise<void> 
 
 /**
  * Get unread message count
+ * Falls back to mock data if backend is unavailable
  */
 export const getUnreadCount = async (): Promise<number> => {
-  // Use mock data in development
-  if (import.meta.env.DEV) {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        const totalUnread = mockConversations.reduce((sum, conv) => sum + conv.unread_count, 0);
-        resolve(totalUnread);
-      }, 300);
-    });
-  }
-  
-  const response = await api.get<{ count: number }>('/api/messages/unread');
-  return response.data.count;
+  return withFallback(
+    async () => {
+      const response = await api.get<{ count: number }>('/api/messages/unread');
+      return response.data.count;
+    },
+    mockConversations.reduce((sum, conv) => sum + conv.unread_count, 0),
+    'Unread Count'
+  );
 };
 
 /**
@@ -246,50 +318,6 @@ export const getOrCreateConversation = async (userId: string): Promise<Conversat
   const response = await api.post<Conversation>('/api/messages/conversations', { user_id: userId });
   return response.data;
 };
-
-// ===== HELPER: Smart Fallback Utility =====
-
-/**
- * Attempts to call the API, but falls back to mock data if the API fails.
- * This allows the app to work without a backend, but automatically use real data when available.
- * 
- * @param apiCall - Function that returns a promise from the API
- * @param mockData - Mock data to use as fallback
- * @param featureName - Name of the feature (for logging)
- * @returns Promise that resolves to either API data or mock data
- */
-async function withFallback<T>(
-  apiCall: () => Promise<T>,
-  mockData: T,
-  featureName: string
-): Promise<T> {
-  try {
-    const result = await apiCall();
-    // If API call succeeds and returns data, use it
-    if (result !== null && result !== undefined) {
-      console.log(`✅ ${featureName}: Using real API data`);
-      return result;
-    }
-    // If API returns null/undefined, fall back to mock
-    console.warn(`⚠️ ${featureName}: API returned empty data, using mock fallback`);
-    return mockData;
-  } catch (error) {
-    // Check if it's a network error or backend not available
-    const isNetworkError = 
-      !(error as any).response || // No response (network error)
-      (error as any).response?.status === 404 || // Endpoint not found
-      (error as any).response?.status >= 500; // Server error
-    
-    if (isNetworkError) {
-      console.warn(`⚠️ ${featureName}: Backend unavailable, using mock data fallback`);
-      return mockData;
-    }
-    
-    // For other errors (like 401, 403), re-throw to let caller handle
-    console.error(`❌ ${featureName}: API error`, error);
-    throw error;
-  }
-}
 
 // ===== CHALLENGES & GAMIFICATION API =====
 
