@@ -19,6 +19,7 @@ import type {
 
 // Base URL for the backend API
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
+const AUTH_MODE = (import.meta.env.VITE_AUTH_MODE || 'oauth').toString().toLowerCase();
 
 // Validate environment variable in production
 if (import.meta.env.PROD && !import.meta.env.VITE_API_BASE_URL) {
@@ -37,9 +38,12 @@ const api = axios.create({
 // Request interceptor to add JWT token
 api.interceptors.request.use(
   (config) => {
-    const token = getToken();
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
+    // In mock mode, do not attach Authorization header
+    if (AUTH_MODE !== 'mock') {
+      const token = getToken();
+      if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+      }
     }
     return config;
   },
@@ -52,9 +56,9 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    // If we get a 401, remove the token and redirect to login
-    // But only if we're not already on the login page
-    if (error.response?.status === 401) {
+    // If we get a 401 in oauth mode, clear token and redirect to login
+    // In mock mode, do NOT redirect; allow fallbacks to handle
+    if (error.response?.status === 401 && AUTH_MODE !== 'mock') {
       removeToken();
       if (window.location.pathname !== '/login') {
         window.location.href = '/login';
@@ -95,7 +99,9 @@ async function withFallback<T>(
     const isNetworkError = 
       !(error as any).response || // No response (network error)
       (error as any).response?.status === 404 || // Endpoint not found
-      (error as any).response?.status >= 500; // Server error
+      (error as any).response?.status >= 500 || // Server error
+      // In mock mode, also treat 401/403 as reasons to use mock
+      (AUTH_MODE === 'mock' && ((error as any).response?.status === 401 || (error as any).response?.status === 403));
     
     if (isNetworkError) {
       console.warn(`⚠️ ${featureName}: Backend unavailable, using mock data fallback`);
