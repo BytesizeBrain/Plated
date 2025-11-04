@@ -68,7 +68,7 @@ function Profile() {
     };
 
     initProfile();
-  }, [navigate]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [navigate]);
 
   // Check username availability when editing
   useEffect(() => {
@@ -139,7 +139,7 @@ function Profile() {
     setIsSubmitting(true);
 
     try {
-      const updateData: Record<string, string> = {};
+      const updateData: any = {};
       
       if (editUsername && editUsername !== username) {
         updateData.username = editUsername;
@@ -166,10 +166,9 @@ function Profile() {
       
       setIsEditing(false);
       setSuccessMessage('Profile updated successfully!');
-    } catch (err: unknown) {
+    } catch (err: any) {
       console.error('Update failed:', err);
-      const errorMessage = err instanceof Error ? err.message : 'Failed to update profile. Please try again.';
-      setError(errorMessage);
+      setError(err.response?.data?.error || 'Failed to update profile. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
@@ -229,13 +228,6 @@ function Profile() {
 
               <button onClick={handleEdit} className="edit-btn">
                 Edit Profile
-              </button>
-              
-              <button 
-                onClick={() => navigate('/feed')} 
-                className="feed-btn"
-              >
-                Go to Feed
               </button>
             </div>
           ) : (
