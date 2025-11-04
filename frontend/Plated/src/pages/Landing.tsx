@@ -157,24 +157,21 @@ function Landing() {
 
           {/* 
             Hero Image/Animation Area
-            Could be replaced with actual app screenshots or video
+            Video playing in phone mockup
           */}
           <div className="hero-visual">
             <div className="phone-mockup">
               <div className="phone-screen">
-                <div className="mock-recipe-card">
-                  <div className="mock-video">
-                    <img 
-                      src="https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=300&h=400&fit=crop" 
-                      alt="Delicious pasta dish"
-                      className="food-image"
-                    />
-                  </div>
-                  <div className="mock-info">
-                    <div className="mock-title">Creamy Carbonara</div>
-                    <div className="mock-stats">👨‍🍳 Chef Maria • ⭐ 4.8 • 🔥 2.3K likes</div>
-                  </div>
-                </div>
+                <video
+                  className="landing-video"
+                  autoPlay
+                  loop
+                  muted
+                  playsInline
+                  src="/landingPageVideo.mp4"
+                >
+                  Your browser does not support the video tag.
+                </video>
               </div>
             </div>
           </div>

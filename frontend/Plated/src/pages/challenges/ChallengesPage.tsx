@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useGamificationStore } from '../../stores/gamificationStore';
-import { mockChallenges, mockRewardsSummary } from '../../data/mockGamificationData';
+import { getChallenges, getRewardsSummary } from '../../utils/api';
 import type { Challenge } from '../../types';
 import XPBar from '../../components/gamification/XPBar';
 import CoinWallet from '../../components/gamification/CoinWallet';
@@ -18,16 +18,38 @@ function ChallengesPage() {
     setChallenges,
     setRewards,
     startChallenge,
+    setLoading,
+    setError,
   } = useGamificationStore();
 
   const [selectedDifficulty, setSelectedDifficulty] = useState<'all' | Challenge['difficulty']>('all');
   const [selectedType, setSelectedType] = useState<'all' | Challenge['type']>('all');
 
-  // Load mock data on mount
+  // Load challenges and rewards with smart fallback (tries API first, falls back to mock if unavailable)
   useEffect(() => {
-    setChallenges(mockChallenges);
-    setRewards(mockRewardsSummary);
-  }, [setChallenges, setRewards]);
+    const loadData = async () => {
+      setLoading(true);
+      setError(null);
+      
+      try {
+        // These functions will try API first, then fall back to mock data if backend is unavailable
+        const [challengesData, rewardsData] = await Promise.all([
+          getChallenges(),
+          getRewardsSummary(),
+        ]);
+        
+        setChallenges(challengesData);
+        setRewards(rewardsData);
+      } catch (error) {
+        console.error('Error loading challenges data:', error);
+        setError('Failed to load challenges. Please try again later.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadData();
+  }, [setChallenges, setRewards, setLoading, setError]);
 
   const filteredChallenges = challenges.filter((challenge) => {
     if (selectedDifficulty !== 'all' && challenge.difficulty !== selectedDifficulty) {
@@ -256,6 +278,7 @@ function ChallengesPage() {
           <select
             value={selectedType}
             onChange={(e) => setSelectedType(e.target.value as typeof selectedType)}
+            aria-label="Filter by challenge type"
           >
             <option value="all">All Types</option>
             <option value="daily">Daily</option>
@@ -269,6 +292,7 @@ function ChallengesPage() {
           <select
             value={selectedDifficulty}
             onChange={(e) => setSelectedDifficulty(e.target.value as typeof selectedDifficulty)}
+            aria-label="Filter by difficulty"
           >
             <option value="all">All Difficulties</option>
             <option value="easy">Easy</option>

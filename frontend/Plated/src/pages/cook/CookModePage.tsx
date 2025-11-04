@@ -1,8 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useGamificationStore } from '../../stores/gamificationStore';
-import { mockChallenges } from '../../data/mockGamificationData';
-import type { CookingStep } from '../../types';
+import { getChallenge } from '../../utils/api';
+import type { Challenge } from '../../types';
 import './CookModePage.css';
 
 function CookModePage() {
@@ -10,21 +10,51 @@ function CookModePage() {
   const navigate = useNavigate();
   const { challenges, updateSessionStep, completeSession } = useGamificationStore();
 
+  const [challenge, setChallenge] = useState<Challenge | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
   const [isTimerRunning, setIsTimerRunning] = useState(false);
   const [timerSeconds, setTimerSeconds] = useState(0);
-  const [completedSteps, setCompletedSteps] = useState<Set<number>>(new Set());
-  const timerIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const timerIntervalRef = useRef<number | null>(null);
 
-  // Find the challenge
-  const challenge = mockChallenges.find(c => c.id === challengeId) ||
-                    challenges.find(c => c.id === challengeId);
-
+  // Load challenge data with smart fallback (tries API first, falls back to mock if unavailable)
   useEffect(() => {
-    if (!challenge || !challenge.recipe) {
-      navigate('/challenges');
-    }
-  }, [challenge, navigate]);
+    const loadChallenge = async () => {
+      if (!challengeId) {
+        navigate('/challenges');
+        return;
+      }
+
+      setIsLoading(true);
+      
+      // First try to find in store (might already be loaded)
+      const existingChallenge = challenges.find(c => c.id === challengeId);
+      if (existingChallenge) {
+        setChallenge(existingChallenge);
+        setIsLoading(false);
+        return;
+      }
+
+      // If not in store, try API (with fallback to mock)
+      try {
+        const challengeData = await getChallenge(challengeId);
+        if (challengeData) {
+          setChallenge(challengeData);
+        } else {
+          // Challenge not found, redirect back
+          navigate('/challenges');
+        }
+      } catch (error) {
+        console.error('Error loading challenge:', error);
+        // getChallenge already handles fallback, so if it fails here, challenge doesn't exist
+        navigate('/challenges');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadChallenge();
+  }, [challengeId, challenges, navigate]);
 
   useEffect(() => {
     return () => {
@@ -34,6 +64,18 @@ function CookModePage() {
     };
   }, []);
 
+  // Show loading state
+  if (isLoading) {
+    return (
+      <div className="cook-mode-page">
+        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+          <p>Loading challenge...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // If challenge not found or invalid, will redirect
   if (!challenge || !challenge.recipe) {
     return null;
   }
@@ -88,7 +130,6 @@ function CookModePage() {
   };
 
   const handleNextStep = () => {
-    setCompletedSteps(prev => new Set([...prev, currentStepIndex]));
     updateSessionStep(currentStepIndex + 1);
     stopTimer();
 
@@ -117,7 +158,7 @@ function CookModePage() {
     <div className="cook-mode-page">
       {/* Header */}
       <header className="cook-header">
-        <button className="exit-btn" onClick={handleExit}>
+        <button className="exit-btn" onClick={handleExit} aria-label="Exit cook mode">
           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <line x1="18" y1="6" x2="6" y2="18"></line>
             <line x1="6" y1="6" x2="18" y2="18"></line>
