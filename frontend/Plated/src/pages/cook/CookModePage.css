@@ -1,0 +1,390 @@
+.cook-mode-page {
+  min-height: 100vh;
+  background: #1f2937;
+  color: white;
+  display: flex;
+  flex-direction: column;
+}
+
+.cook-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 20px;
+  background: rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(10px);
+}
+
+.exit-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+  border-radius: 50%;
+  color: white;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.exit-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.cook-title {
+  flex: 1;
+}
+
+.cook-title h1 {
+  font-size: 18px;
+  font-weight: 700;
+  margin: 0 0 4px;
+}
+
+.step-indicator {
+  font-size: 13px;
+  opacity: 0.8;
+  font-weight: 500;
+}
+
+.cook-progress {
+  width: 100%;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #10b981 0%, #059669 100%);
+  transition: width 0.3s ease;
+}
+
+.cook-content {
+  flex: 1;
+  padding: 24px 20px;
+  overflow-y: auto;
+  max-width: 800px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.safety-alert {
+  display: flex;
+  gap: 12px;
+  padding: 16px;
+  background: rgba(239, 68, 68, 0.15);
+  border: 2px solid rgba(239, 68, 68, 0.5);
+  border-radius: 12px;
+  margin-bottom: 24px;
+  animation: alertPulse 2s ease-in-out infinite;
+}
+
+@keyframes alertPulse {
+  0%, 100% {
+    border-color: rgba(239, 68, 68, 0.5);
+  }
+  50% {
+    border-color: rgba(239, 68, 68, 0.8);
+  }
+}
+
+.safety-icon {
+  font-size: 24px;
+  flex-shrink: 0;
+}
+
+.safety-content h3 {
+  font-size: 15px;
+  font-weight: 700;
+  margin: 0 0 6px;
+  color: #fca5a5;
+}
+
+.safety-content p {
+  font-size: 14px;
+  line-height: 1.6;
+  margin: 0;
+  color: #fecaca;
+}
+
+.step-media {
+  margin-bottom: 24px;
+  border-radius: 12px;
+  overflow: hidden;
+  background: rgba(0, 0, 0, 0.3);
+}
+
+.step-media img,
+.step-media video {
+  width: 100%;
+  display: block;
+}
+
+.step-instruction {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.step-number {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  background: linear-gradient(135deg, #ff6b6b 0%, #ff5252 100%);
+  border-radius: 50%;
+  font-size: 20px;
+  font-weight: 800;
+  flex-shrink: 0;
+}
+
+.step-text {
+  flex: 1;
+  font-size: 18px;
+  line-height: 1.8;
+  margin: 0;
+  padding-top: 8px;
+}
+
+.step-techniques {
+  margin-bottom: 24px;
+  padding: 16px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+}
+
+.step-techniques h4 {
+  font-size: 14px;
+  font-weight: 600;
+  margin: 0 0 12px;
+  opacity: 0.8;
+}
+
+.technique-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.technique-tag {
+  padding: 6px 12px;
+  background: rgba(102, 126, 234, 0.3);
+  border: 1px solid rgba(102, 126, 234, 0.5);
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+.step-timer {
+  margin-bottom: 24px;
+  padding: 20px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  text-align: center;
+}
+
+.timer-display {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.timer-display.running {
+  animation: timerPulse 1s ease-in-out infinite;
+}
+
+@keyframes timerPulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}
+
+.timer-display.completed .timer-icon {
+  animation: timerComplete 0.5s ease-in-out;
+}
+
+@keyframes timerComplete {
+  0%, 100% {
+    transform: rotate(0deg) scale(1);
+  }
+  25% {
+    transform: rotate(-10deg) scale(1.2);
+  }
+  75% {
+    transform: rotate(10deg) scale(1.2);
+  }
+}
+
+.timer-icon {
+  font-size: 40px;
+}
+
+.timer-time {
+  font-size: 48px;
+  font-weight: 800;
+  font-family: 'Courier New', monospace;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.timer-controls {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+}
+
+.timer-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.timer-btn.start {
+  background: #10b981;
+  color: white;
+}
+
+.timer-btn.start:hover {
+  background: #059669;
+  transform: translateY(-2px);
+}
+
+.timer-btn.pause {
+  background: #f59e0b;
+  color: white;
+}
+
+.timer-btn.pause:hover {
+  background: #d97706;
+  transform: translateY(-2px);
+}
+
+.timer-btn.reset {
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+}
+
+.timer-btn.reset:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: translateY(-2px);
+}
+
+.cook-footer {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 20px;
+  background: rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(10px);
+}
+
+.nav-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 28px;
+  border: none;
+  border-radius: 10px;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.nav-btn.prev {
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+}
+
+.nav-btn.prev:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.2);
+  transform: translateY(-2px);
+}
+
+.nav-btn.prev:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.nav-btn.next {
+  background: linear-gradient(135deg, #ff6b6b 0%, #ff5252 100%);
+  color: white;
+  flex: 1;
+}
+
+.nav-btn.next:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(255, 107, 107, 0.4);
+}
+
+.steps-overview {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  padding: 12px 20px;
+  background: rgba(0, 0, 0, 0.2);
+  overflow-x: auto;
+}
+
+.step-dot {
+  width: 8px;
+  height: 8px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  transition: all 0.3s ease;
+}
+
+.step-dot.completed {
+  background: #10b981;
+  width: 10px;
+  height: 10px;
+}
+
+.step-dot.current {
+  background: #ff6b6b;
+  width: 12px;
+  height: 12px;
+  box-shadow: 0 0 8px rgba(255, 107, 107, 0.6);
+}
+
+@media (max-width: 768px) {
+  .cook-content {
+    padding: 20px 16px;
+  }
+
+  .step-text {
+    font-size: 16px;
+  }
+
+  .timer-time {
+    font-size: 40px;
+  }
+
+  .cook-footer {
+    padding: 16px;
+  }
+
+  .nav-btn {
+    padding: 12px 20px;
+    font-size: 15px;
+  }
+
+  .nav-btn.prev span {
+    display: none;
+  }
+}

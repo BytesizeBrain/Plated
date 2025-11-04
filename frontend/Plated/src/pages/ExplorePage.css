@@ -1,0 +1,248 @@
+.explore-page {
+  min-height: 100vh;
+  background: #0f0f23;
+  color: #ffffff;
+}
+
+/* Header */
+.explore-header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: rgba(15, 15, 35, 0.95);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.explore-header-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 1rem 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.explore-header h1 {
+  font-size: 1.5rem;
+  font-weight: bold;
+  margin: 0;
+  flex: 1;
+}
+
+.back-btn {
+  background: none;
+  border: none;
+  color: #a0a0b8;
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 50%;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.back-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+}
+
+.header-spacer {
+  width: 40px;
+}
+
+/* Search Section */
+.explore-search-section {
+  background: #1a1a2e;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 2rem 0;
+}
+
+.explore-search-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+}
+
+.explore-search-form {
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.search-input-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.search-icon {
+  position: absolute;
+  left: 1rem;
+  color: #a0a0b8;
+  z-index: 1;
+}
+
+.search-input {
+  width: 100%;
+  padding: 1rem 1rem 1rem 3rem;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 25px;
+  color: #ffffff;
+  font-size: 1rem;
+  transition: all 0.2s;
+}
+
+.search-input::placeholder {
+  color: #a0a0b8;
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: #667eea;
+  background: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+/* Content */
+.explore-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem;
+}
+
+.search-results-header {
+  margin-bottom: 2rem;
+}
+
+.search-results-header h2 {
+  color: #ffffff;
+  font-size: 1.25rem;
+  margin: 0;
+}
+
+/* Loading */
+.explore-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem 2rem;
+  text-align: center;
+}
+
+.loading-spinner {
+  width: 48px;
+  height: 48px;
+  border: 4px solid rgba(255, 255, 255, 0.1);
+  border-top-color: #667eea;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin-bottom: 1rem;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.explore-loading p {
+  color: #a0a0b8;
+  margin: 0;
+}
+
+/* Empty State */
+.explore-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem 2rem;
+  text-align: center;
+}
+
+.explore-empty svg {
+  color: #6b6b8f;
+  margin-bottom: 1.5rem;
+}
+
+.explore-empty h2 {
+  color: #ffffff;
+  margin-bottom: 0.5rem;
+}
+
+.explore-empty p {
+  color: #a0a0b8;
+}
+
+/* Posts */
+.explore-posts {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+/* Suggestions */
+.explore-suggestions {
+  margin-top: 3rem;
+}
+
+.explore-suggestions h2 {
+  color: #ffffff;
+  margin-bottom: 1.5rem;
+  text-align: center;
+}
+
+.suggestion-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  justify-content: center;
+}
+
+.suggestion-tag {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #a0a0b8;
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 0.9rem;
+}
+
+.suggestion-tag:hover {
+  background: rgba(102, 126, 234, 0.1);
+  border-color: #667eea;
+  color: #ffffff;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .explore-header-content {
+    padding: 1rem;
+  }
+
+  .explore-header h1 {
+    font-size: 1.25rem;
+  }
+
+  .explore-search-container {
+    padding: 0 1rem;
+  }
+
+  .explore-content {
+    padding: 1.5rem 1rem;
+  }
+
+  .suggestion-tags {
+    gap: 0.5rem;
+  }
+
+  .suggestion-tag {
+    padding: 0.4rem 0.8rem;
+    font-size: 0.85rem;
+  }
+}

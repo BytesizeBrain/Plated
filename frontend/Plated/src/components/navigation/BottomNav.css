@@ -1,0 +1,140 @@
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  background: rgba(15, 15, 35, 0.95);
+  -webkit-backdrop-filter: blur(20px);
+  backdrop-filter: blur(20px);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 12px 0 max(12px, env(safe-area-inset-bottom));
+  z-index: 1000;
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.3);
+}
+
+.bottom-nav-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 8px 20px;
+  border: none;
+  background: transparent;
+  color: #6b6b8f;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+  min-width: 60px;
+}
+
+.bottom-nav-btn svg {
+  transition: all 0.2s ease;
+}
+
+.bottom-nav-btn span {
+  font-size: 12px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.bottom-nav-btn:hover {
+  color: #a0a0b8;
+  transform: translateY(-2px);
+}
+
+.bottom-nav-btn.active {
+  color: #667eea;
+}
+
+.bottom-nav-btn.active svg {
+  transform: scale(1.1);
+}
+
+.bottom-nav-btn.active span {
+  font-weight: 600;
+}
+
+.nav-badge {
+  position: absolute;
+  top: 4px;
+  right: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 4px;
+  background: #667eea;
+  color: white;
+  border-radius: 10px;
+  font-size: 11px;
+  font-weight: 700;
+  border: 2px solid rgba(15, 15, 35, 0.95);
+}
+
+.nav-badge.unread {
+  background: #f093fb;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.8;
+    transform: scale(1.05);
+  }
+}
+
+/* Tablet and Desktop - Hide text labels, show only icons */
+@media (min-width: 769px) {
+  .bottom-nav {
+    width: auto;
+    left: auto;
+    right: auto;
+    border-radius: 24px 24px 0 0;
+    margin: 0 auto;
+    max-width: 600px;
+  }
+
+  .bottom-nav-btn {
+    min-width: 80px;
+  }
+
+  .bottom-nav-btn span {
+    display: none;
+  }
+
+  .bottom-nav-btn {
+    gap: 0;
+  }
+}
+
+/* Mobile Landscape */
+@media (max-height: 500px) and (orientation: landscape) {
+  .bottom-nav {
+    border-radius: 20px 20px 0 0;
+  }
+
+  .bottom-nav-btn {
+    padding: 4px 16px;
+  }
+
+  .bottom-nav-btn span {
+    display: none;
+  }
+}
+
+/* Safe area insets for mobile devices */
+@supports (padding: max(0px)) {
+  .bottom-nav {
+    padding-bottom: max(12px, env(safe-area-inset-bottom));
+  }
+}
+
