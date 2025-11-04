@@ -74,7 +74,7 @@ const calculateNextLevelXp = (level: number): number => {
   return level * level * 100;
 };
 
-export const useGamificationStore = create<GamificationState>((set, get) => ({
+export const useGamificationStore = create<GamificationState>((set) => ({
   challenges: [],
   activeChallenges: [],
   currentSession: null,
