@@ -46,7 +46,7 @@ function Register() {
     };
 
     initRegister();
-  }, [navigate, searchParams]);
+  }, [navigate]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Check username availability with debounce
   useEffect(() => {
@@ -101,10 +101,10 @@ function Register() {
       
       // Registration successful, redirect to profile
       navigate('/profile');
-    } catch (err) {
+    } catch (err: unknown) {
       console.error('Registration failed:', err);
-      const maybeAxios = err as { response?: { data?: { error?: string } } };
-      setError(maybeAxios.response?.data?.error || 'Failed to complete registration. Please try again.');
+      const errorMessage = err instanceof Error ? err.message : 'Failed to complete registration. Please try again.';
+      setError(errorMessage);
     } finally {
       setIsSubmitting(false);
     }

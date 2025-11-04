@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import { useFeedStore } from '../../stores/feedStore';
 import { useMessageStore } from '../../stores/messageStore';
 import { getFeedPosts, getUnreadCount } from '../../utils/api';
-import type { FeedPost } from '../../types';
 import { isAuthenticated } from '../../utils/auth';
 import PostCard from '../../components/feed/PostCard';
 import FeedFilters from '../../components/feed/FeedFilters';
@@ -263,7 +262,7 @@ function FeedPage() {
         ) : (
           <>
             <div className="feed-posts">
-              {posts.map((post: FeedPost) => (
+              {posts.map((post) => (
                 <PostCard key={post.id} post={post} />
               ))}
             </div>

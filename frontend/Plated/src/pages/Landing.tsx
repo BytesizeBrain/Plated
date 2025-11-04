@@ -157,18 +157,21 @@ function Landing() {
 
           {/* 
             Hero Image/Animation Area
-            Could be replaced with actual app screenshots or video
+            Video playing in phone mockup
           */}
           <div className="hero-visual">
             <div className="phone-mockup">
               <div className="phone-screen">
-                <div className="mock-recipe-card">
-                  <div className="mock-video"></div>
-                  <div className="mock-info">
-                    <div className="mock-title"></div>
-                    <div className="mock-stats"></div>
-                  </div>
-                </div>
+                <video
+                  className="landing-video"
+                  autoPlay
+                  loop
+                  muted
+                  playsInline
+                  src="/landingPageVideo.mp4"
+                >
+                  Your browser does not support the video tag.
+                </video>
               </div>
             </div>
           </div>

@@ -1,3 +1,265 @@
-/* minimal placeholder to satisfy import after merge */
-.feed-page {}
+.feed-page {
+  min-height: 100vh;
+  background: #0f0f23;
+  color: #ffffff;
+}
 
+/* Header */
+.feed-header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: rgba(15, 15, 35, 0.95);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.feed-header-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 1rem 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.feed-logo {
+  font-size: 1.5rem;
+  font-weight: bold;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin: 0;
+}
+
+/* Search Bar */
+.feed-search {
+  flex: 1;
+  max-width: 500px;
+  margin: 0 2rem;
+}
+
+.search-input-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.search-icon {
+  position: absolute;
+  left: 1rem;
+  color: #a0a0b8;
+  z-index: 1;
+}
+
+.search-input {
+  width: 100%;
+  padding: 0.75rem 1rem 0.75rem 3rem;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 25px;
+  color: #ffffff;
+  font-size: 0.9rem;
+  transition: all 0.2s;
+}
+
+.search-input::placeholder {
+  color: #a0a0b8;
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: #667eea;
+  background: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.feed-nav {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+
+.nav-icon-btn {
+  position: relative;
+  background: none;
+  border: none;
+  color: #a0a0b8;
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 50%;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.nav-icon-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+}
+
+.unread-badge {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  background: #f093fb;
+  color: #fff;
+  font-size: 0.65rem;
+  font-weight: bold;
+  padding: 0.15rem 0.4rem;
+  border-radius: 10px;
+  min-width: 18px;
+  text-align: center;
+}
+
+/* Feed Content */
+.feed-content {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 1.5rem;
+  padding-bottom: 80px;
+}
+
+.feed-loading,
+.feed-empty,
+.feed-error {
+  text-align: center;
+  padding: 3rem 1.5rem;
+}
+
+.feed-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.loading-spinner {
+  width: 48px;
+  height: 48px;
+  border: 4px solid rgba(255, 255, 255, 0.1);
+  border-top-color: #667eea;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.feed-empty svg {
+  color: #6b6b8f;
+  margin-bottom: 1rem;
+}
+
+.feed-empty h2 {
+  color: #ffffff;
+  margin-bottom: 0.5rem;
+}
+
+.feed-empty p {
+  color: #a0a0b8;
+}
+
+.feed-error {
+  background: rgba(255, 0, 0, 0.1);
+  border: 1px solid rgba(255, 0, 0, 0.2);
+  border-radius: 12px;
+  margin-bottom: 1rem;
+}
+
+.feed-error button {
+  margin-top: 1rem;
+  padding: 0.75rem 1.5rem;
+  background: #667eea;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.feed-error button:hover {
+  background: #5568d3;
+}
+
+/* Feed Posts */
+.feed-posts {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+/* Observer */
+.feed-observer {
+  padding: 2rem;
+  text-align: center;
+}
+
+.loading-more {
+  display: flex;
+  justify-content: center;
+}
+
+.loading-spinner-small {
+  width: 32px;
+  height: 32px;
+  border: 3px solid rgba(255, 255, 255, 0.1);
+  border-top-color: #667eea;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+.feed-end {
+  text-align: center;
+  padding: 2rem;
+  color: #6b6b8f;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .feed-header-content {
+    padding: 1rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+
+  .feed-logo {
+    font-size: 1.25rem;
+  }
+
+  .feed-search {
+    order: 3;
+    flex: 1 1 100%;
+    margin: 0;
+    max-width: none;
+  }
+
+  .feed-nav {
+    gap: 0.5rem;
+  }
+
+  .feed-content {
+    padding: 1rem;
+  }
+
+  .feed-posts {
+    gap: 1rem;
+  }
+}
+
+/* Chatbot Button */
+.chatbot-icon {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white !important;
+}
+
+.chatbot-icon:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
