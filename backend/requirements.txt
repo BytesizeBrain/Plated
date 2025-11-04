@@ -1,6 +1,6 @@
 flask
 flask_sqlalchemy
-dotenv
+python-dotenv
 Authlib
 Flask-OAuthlib
 PyJWT

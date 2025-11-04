@@ -15,6 +15,19 @@ from routes.user_routes import users_bp
 # Registering Blueprints (Routes)
 app.register_blueprint(users_bp)
 
+@app.route('/')
+def index():
+    """Root endpoint to confirm server is running"""
+    return {
+        "status": "ok",
+        "message": "Plated Backend API is running",
+        "endpoints": {
+            "health": "/health",
+            "login": "/login",
+            "user_profile": "/api/user/profile"
+        }
+    }, 200
+
 if __name__ == '__main__':
     # Create a db and tables if they don't exist
     with app.app_context():
