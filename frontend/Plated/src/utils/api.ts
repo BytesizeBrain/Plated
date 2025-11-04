@@ -18,13 +18,41 @@ import type {
   RewardSummary
 } from '../types';
 
+// Determine the base URL for the backend API with environment fallbacks
+const resolveApiBaseUrl = (): string => {
+  const rawEnvUrl = import.meta.env.VITE_API_BASE_URL?.toString().trim();
+  if (rawEnvUrl) {
+    return rawEnvUrl.replace(/\/+$/, '');
+  }
+
+  if (typeof window !== 'undefined') {
+    const { protocol, hostname, port } = window.location;
+    const fallbackPort = import.meta.env.VITE_API_FALLBACK_PORT?.toString().trim();
+
+    let portToUse = fallbackPort || '';
+
+    if (!portToUse) {
+      if (hostname === 'localhost' || hostname === '127.0.0.1') {
+        portToUse = '5000';
+      } else if (port) {
+        portToUse = port;
+      }
+    }
+
+    const portSegment = portToUse ? `:${portToUse}` : '';
+    return `${protocol}//${hostname}${portSegment}`;
+  }
+
+  return 'http://localhost:5000';
+};
+
 // Base URL for the backend API
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
+export const API_BASE_URL = resolveApiBaseUrl();
 const AUTH_MODE = (import.meta.env.VITE_AUTH_MODE || 'oauth').toString().toLowerCase();
 
 // Validate environment variable in production
 if (import.meta.env.PROD && !import.meta.env.VITE_API_BASE_URL) {
-  console.warn('⚠️ VITE_API_BASE_URL is not set in production. Defaulting to localhost:5000. This may cause API calls to fail.');
+  console.warn(`⚠️ VITE_API_BASE_URL is not set in production. Falling back to ${API_BASE_URL}. Configure VITE_API_BASE_URL to avoid unexpected redirects.`);
 }
 
 // Create axios instance
