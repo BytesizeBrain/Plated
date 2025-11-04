@@ -5,7 +5,6 @@ import type {
   Squad,
   LeaderboardEntry,
   Coupon,
-  CookingStep,
 } from '../types';
 
 // Mock Badges

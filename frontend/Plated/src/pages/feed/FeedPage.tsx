@@ -28,7 +28,7 @@ function FeedPage() {
     resetFeed,
   } = useFeedStore();
 
-  const { unreadCount, setUnreadCount } = useMessageStore();
+  const { setUnreadCount } = useMessageStore();
   const [initialLoad, setInitialLoad] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [showChatbot, setShowChatbot] = useState(false);

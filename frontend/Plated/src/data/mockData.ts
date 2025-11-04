@@ -1,4 +1,4 @@
-import type { FeedPost, Conversation, Message, UserProfile, MockConfig } from '../types';
+import type { FeedPost, Conversation, Message, UserProfile, MockConfig, Comment } from '../types';
 
 // Mock Configuration for testing without backend
 export const mockConfig: MockConfig = {
@@ -362,6 +362,82 @@ export const mockMessages: Message[] = [
     created_at: '2024-01-15T16:45:00Z',
     is_read: false,
     status: 'delivered'
+  }
+];
+
+// Mock Comments for posts
+export const mockComments: Comment[] = [
+  {
+    id: 'comment1',
+    post_id: '1',
+    user_id: '2',
+    user: {
+      username: 'john_cook',
+      display_name: 'John Smith',
+      profile_pic: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face'
+    },
+    content: 'This looks absolutely delicious! I\'ll definitely try this recipe this weekend.',
+    created_at: '2024-01-15T11:00:00Z'
+  },
+  {
+    id: 'comment2',
+    post_id: '1',
+    user_id: '3',
+    user: {
+      username: 'sarah_baker',
+      display_name: 'Sarah Johnson',
+      profile_pic: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=face'
+    },
+    content: 'The secret to perfect carbonara is using fresh eggs and good quality pancetta!',
+    created_at: '2024-01-15T11:30:00Z'
+  },
+  {
+    id: 'comment3',
+    post_id: '1',
+    user_id: '4',
+    user: {
+      username: 'mike_chef',
+      display_name: 'Mike Chen',
+      profile_pic: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face'
+    },
+    content: 'I made this last night and it was incredible! My family loved it.',
+    created_at: '2024-01-15T12:15:00Z'
+  },
+  {
+    id: 'comment4',
+    post_id: '2',
+    user_id: '1',
+    user: {
+      username: 'chef_maria',
+      display_name: 'Maria Rodriguez',
+      profile_pic: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face'
+    },
+    content: 'These cookies are perfect! The brown butter really makes a difference.',
+    created_at: '2024-01-14T16:00:00Z'
+  },
+  {
+    id: 'comment5',
+    post_id: '2',
+    user_id: '3',
+    user: {
+      username: 'sarah_baker',
+      display_name: 'Sarah Johnson',
+      profile_pic: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=face'
+    },
+    content: 'Can you share the exact baking time? I want to make sure they\'re perfectly soft.',
+    created_at: '2024-01-14T16:30:00Z'
+  },
+  {
+    id: 'comment6',
+    post_id: '3',
+    user_id: '2',
+    user: {
+      username: 'john_cook',
+      display_name: 'John Smith',
+      profile_pic: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face'
+    },
+    content: 'Love quick and healthy meals like this! Perfect for meal prep.',
+    created_at: '2024-01-13T19:00:00Z'
   }
 ];
 

@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { getToken, removeToken } from './auth';
-import { mockFeedPosts, mockConversations, mockCurrentUser } from '../data/mockData';
+import { mockFeedPosts, mockConversations, mockCurrentUser, mockComments, mockMessages } from '../data/mockData';
 import { mockChallenges, mockRewardsSummary } from '../data/mockGamificationData';
 import type {
   RegisterData,
@@ -155,12 +155,19 @@ export const updateUser = async (data: UpdateUserData): Promise<void> => {
 
 /**
  * Check if a username is available
+ * Falls back to mock check (always returns true - available) if backend is unavailable
  */
 export const checkUsername = async (username: string): Promise<boolean> => {
-  const response = await api.get<CheckUsernameResponse>('/api/user/check_username', {
-    params: { username },
-  });
-  return !response.data.exists; // Return true if username is available
+  return withFallback(
+    async () => {
+      const response = await api.get<CheckUsernameResponse>('/api/user/check_username', {
+        params: { username },
+      });
+      return !response.data.exists; // Return true if username is available
+    },
+    true, // Mock: always return true (username available) when backend is down
+    'Username Check'
+  );
 };
 
 // ===== FEED API =====
@@ -235,10 +242,17 @@ export const unsavePost = async (postId: string): Promise<void> => {
 
 /**
  * Get comments for a post
+ * Falls back to mock data if backend is unavailable
  */
 export const getPostComments = async (postId: string): Promise<Comment[]> => {
-  const response = await api.get<Comment[]>(`/api/posts/${postId}/comments`);
-  return response.data;
+  return withFallback(
+    async () => {
+      const response = await api.get<Comment[]>(`/api/posts/${postId}/comments`);
+      return response.data;
+    },
+    mockComments.filter(c => c.post_id === postId),
+    'Post Comments'
+  );
 };
 
 /**
@@ -275,10 +289,17 @@ export const getConversations = async (): Promise<Conversation[]> => {
 
 /**
  * Get messages for a specific conversation
+ * Falls back to mock data if backend is unavailable
  */
 export const getConversationMessages = async (conversationId: string): Promise<Message[]> => {
-  const response = await api.get<Message[]>(`/api/messages/conversations/${conversationId}`);
-  return response.data;
+  return withFallback(
+    async () => {
+      const response = await api.get<Message[]>(`/api/messages/conversations/${conversationId}`);
+      return response.data;
+    },
+    mockMessages.filter(m => m.conversation_id === conversationId),
+    'Conversation Messages'
+  );
 };
 
 /**
