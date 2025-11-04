@@ -1,4 +1,5 @@
 import axios from 'axios';
+type HttpError = { response?: { status?: number } };
 import { getToken, removeToken } from './auth';
 import { mockFeedPosts, mockConversations, mockCurrentUser, mockComments, mockMessages } from '../data/mockData';
 import { mockChallenges, mockRewardsSummary } from '../data/mockGamificationData';
@@ -42,7 +43,9 @@ api.interceptors.request.use(
     if (AUTH_MODE !== 'mock') {
       const token = getToken();
       if (token) {
-        (config.headers as any).Authorization = `Bearer ${token}`;
+        const headers = (config.headers ?? {}) as Record<string, string>;
+        headers.Authorization = `Bearer ${token}`;
+        config.headers = headers;
       }
     }
     return config;
@@ -97,11 +100,11 @@ async function withFallback<T>(
   } catch (error) {
     // Check if it's a network error or backend not available
     const isNetworkError = 
-      !(error as any).response || // No response (network error)
-      (error as any).response?.status === 404 || // Endpoint not found
-      (error as any).response?.status >= 500 || // Server error
+      !(error as HttpError).response || // No response (network error)
+      (error as HttpError).response?.status === 404 || // Endpoint not found
+      ((error as HttpError).response?.status ?? 0) >= 500 || // Server error
       // In mock mode, also treat 401/403 as reasons to use mock
-      (AUTH_MODE === 'mock' && ((error as any).response?.status === 401 || (error as any).response?.status === 403));
+      (AUTH_MODE === 'mock' && (((error as HttpError).response?.status === 401) || ((error as HttpError).response?.status === 403)));
     
     if (isNetworkError) {
       console.warn(`⚠️ ${featureName}: Backend unavailable, using mock data fallback`);
@@ -144,7 +147,7 @@ export const updateUser = async (data: UpdateUserData): Promise<void> => {
   try {
     await api.put('/api/user/update', data);
   } catch (error) {
-    if (!(error as any).response) {
+    if (!(error as HttpError).response) {
       throw new Error('Unable to connect to server. Please check your connection.');
     }
     throw error;
@@ -210,7 +213,7 @@ export const likePost = async (postId: string): Promise<void> => {
   try {
     await api.post(`/api/posts/${postId}/like`);
   } catch (error) {
-    if (!(error as any).response) {
+    if (!(error as HttpError).response) {
       throw new Error('Unable to connect to server. Please check your connection.');
     }
     throw error;
@@ -367,7 +370,7 @@ export const getChallenge = async (challengeId: string): Promise<Challenge | nul
     return response.data;
   } catch (error) {
     // Check if it's an authentication error that should be re-thrown
-    const status = (error as any).response?.status;
+    const status = (error as HttpError).response?.status;
     const isAuthError = status === 401 || status === 403;
     
     if (isAuthError) {
@@ -379,7 +382,7 @@ export const getChallenge = async (challengeId: string): Promise<Challenge | nul
     
     // Check if it's a network error or backend not available
     const isNetworkError = 
-      !(error as any).response || // No response (network error)
+      !(error as HttpError).response || // No response (network error)
       status === 404 || // Endpoint not found
       (status && status >= 500); // Server error
     
@@ -428,7 +431,7 @@ export const startChallenge = async (challengeId: string): Promise<void> => {
  * Save cook session progress
  * If backend is unavailable, this will fail (no mock fallback for write operations)
  */
-export const saveCookSession = async (sessionData: any): Promise<void> => {
+export const saveCookSession = async (sessionData: unknown): Promise<void> => {
   await api.post('/api/sessions', sessionData);
 };
 
@@ -436,7 +439,7 @@ export const saveCookSession = async (sessionData: any): Promise<void> => {
  * Submit completed cook session
  * If backend is unavailable, this will fail (no mock fallback for write operations)
  */
-export const submitCookSession = async (sessionId: string, proofData: any): Promise<void> => {
+export const submitCookSession = async (sessionId: string, proofData: unknown): Promise<void> => {
   await api.post(`/api/sessions/${sessionId}/submit`, proofData);
 };
 
