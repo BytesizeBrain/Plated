@@ -1,14 +1,14 @@
 import requests
 
 data ={
-    "cuisine":"Italian",
-    "title": "Lasagna", 
-    "description": "Lasagna--multi-layered pasta",
-    "budget": 30,
+    "cuisine":"2Italian",
+    "title": "2Lasagna", 
+    "description": "2Lasagna--multi-layered pasta",
+    "budget": 130,
     "ingredients": ["pasta", "tomato sauce", "cheese"],
     "steps": ["Boil pasta", "One layer of pasta, one layer of sauce", "cheese on top", "bake"],
     "cuisine":"Italian",
-    "prepare_time":20
+    "prepare_time":120
 }
 
 response = requests.post("http://localhost:5000/recipes", json=data)

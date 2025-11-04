@@ -1,5 +1,5 @@
 # from extensions import app, db
-# from flask_cors import CORS
+from flask_cors import CORS
 # from supabase import create_
 
 ##### Chau's part ######
@@ -12,9 +12,11 @@ from dotenv import load_dotenv
 load_dotenv()
 
 SUPABASE_URL = os.getenv("SUPABASE_URL")
-SUPABASE_KEY = os.getenv("SUPABASE_KEY")
+SUPABASE_ANON_KEY = os.getenv("SUPABASE_ANON_KEY")
+# SUPABASE_SERVICE_KEY = os.getenv("SUPABASE_SERVICE_KEY")
 
-supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
+supabase = create_client(SUPABASE_URL, SUPABASE_ANON_KEY)
+# supabase = create_client(SUPABASE_URL, SUPABASE_SERVICE_KEY)
 
 app = Flask(__name__)
 
@@ -26,7 +28,6 @@ def home():
 @app.route("/posts", methods=["POST"])
 def create_post():
     data = request.get_json()
-
     user_id = data.get("user_id")
     image_url = data.get("image_url")
     description = data.get("description")
@@ -76,6 +77,39 @@ def create_recipe():
     data = request.get_json()
     response = supabase.table("recipes").insert(data).execute()
     return jsonify(response.data)
+
+@app.route("/upload", methods=["POST"])
+def upload_image():
+    if "image" not in request.files:
+        return jsonify({"Error": "No image provided"}), 400
+
+    file = request.files["image"]
+    if file.filename == "":
+        return jsonify({"Error": "No selected file"}), 400
+
+    try:
+        #Convert FileStorage into bytes
+        file_data = file.read()
+        #Upload file to supabase storage
+        file_name = file.filename
+        storage_path = f"uploads/{file_name}"
+
+        #Upload to "post-images" bucket
+        res = supabase.storage.from_("post-images").upload(storage_path, file_data)
+        
+        # Get public URL
+        public_URL = supabase.storage.from_("post-images").get_public_url(storage_path)
+
+        # Now store the URL in your "posts" table
+        # return jsonify({"image_url": public_URL}), 200
+        return jsonify({
+            "Message": "Upload successful", 
+            "File_name": file_name,
+            "Image_url": public_URL
+        }), 200
+
+    except Exception as e:
+        return jsonify({"Error": str(e)}), 500
 
 if __name__ == "__main__":
     app.run(debug=True)

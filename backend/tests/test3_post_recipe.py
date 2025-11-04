@@ -1,13 +1,12 @@
 import requests
 
 data ={
-    "cuisine":"Italian",
-    "title": "Lasagna", 
-    "description": "Lasagna--multi-layered pasta",
-    "budget": 30,
-    "ingredients": ["pasta", "tomato sauce", "cheese"],
-    "steps": ["Boil pasta", "One layer of pasta, one layer of sauce", "cheese on top", "bake"],
-    "cuisine":"Italian",
+    "cuisine":"American",
+    "title": "Hamburger", 
+    "description": "Hamburger--multi-layered meet",
+    "budget": 10,
+    "ingredients": ["buns", "meat", "cheese"],
+    "steps": ["Cook meat", "Two layers of meat and cheese", "serve"],
     "prepare_time":20
 }
 
