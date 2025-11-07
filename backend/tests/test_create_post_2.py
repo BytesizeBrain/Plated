@@ -3,12 +3,12 @@ import requests
 BASE_URL = "http://localhost:5000/create_post"
 
 files = {
-    "image": open("banhMi.jpg", "rb")
+    "image": open("banhCuon.jpg", "rb")
 }
 
 data = {
     "user_id": "00000000-0000-0000-0000-000000000001",
-    "caption": "Delicious Banh Mi"
+    "caption": "Yummy Banh Cuon"
 }
 
 response = requests.post(BASE_URL, files = files, data = data)

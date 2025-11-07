@@ -7,6 +7,7 @@ from flask import Flask, request, jsonify
 from supabase import create_client
 import os 
 from dotenv import load_dotenv
+import uuid
 
 # Load environment variables
 load_dotenv()
@@ -26,20 +27,21 @@ def home():
     return "Flask and Supabase backend is running."
 
 @app.route("/posts", methods=["POST"])
-def create_post():
+def create_post_temp():
     data = request.get_json()
     user_id = data.get("user_id")
     image_url = data.get("image_url")
-    description = data.get("description")
+    caption = data.get("caption")
 
     if not user_id:
+
         return jsonify({"Error": "Missing user_id"}), 400
 
     try:
         response = supabase.table("posts").insert({
             "user_id": user_id,
             "image_url": image_url,
-            "description": description
+            "caption": caption
         }).execute()
 
         return jsonify(response.data), 201
@@ -78,8 +80,8 @@ def create_recipe():
     response = supabase.table("recipes").insert(data).execute()
     return jsonify(response.data)
 
-@app.route("/upload", methods=["POST"])
-def upload_image():
+@app.route("/create_post", methods=["POST"])
+def create_post(): #old name: upload_image()
     if "image" not in request.files:
         return jsonify({"Error": "No image provided"}), 400
 
@@ -87,23 +89,42 @@ def upload_image():
     if file.filename == "":
         return jsonify({"Error": "No selected file"}), 400
 
+    #Optional: get user_id from request JSON or headers
+
+    # user_id = request.form.get("user_id") # could be from auth token
+    # user_id = str(uuid.uuid4())
+    user_id = request.form.get("user_id")
+    caption = request.form.get("caption", "")
+
     try:
+        # Make unique filename
+        unique_name = f"{uuid.uuid4()}_{file.filename}"
+        storage_path = f"uploads/{unique_name}"    
         #Convert FileStorage into bytes
         file_data = file.read()
+
         #Upload file to supabase storage
         file_name = file.filename
-        storage_path = f"uploads/{file_name}"
+        # storage_path = f"uploads/{file_name}"
 
-        #Upload to "post-images" bucket
+        # Upload to "post-images" bucket
         res = supabase.storage.from_("post-images").upload(storage_path, file_data)
         
         # Get public URL
         public_URL = supabase.storage.from_("post-images").get_public_url(storage_path)
 
+        # Insert into posts table
+        supabase.table("posts").insert({
+            "user_id": user_id,
+            "image_url": public_URL,
+            "caption": caption
+        }).execute()
+
         # Now store the URL in your "posts" table
         # return jsonify({"image_url": public_URL}), 200
         return jsonify({
-            "Message": "Upload successful", 
+            "Message": "Post created successful",
+            "Caption": caption,
             "File_name": file_name,
             "Image_url": public_URL
         }), 200
