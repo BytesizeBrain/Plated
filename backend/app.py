@@ -134,6 +134,45 @@ def get_user_posts(user_id):
     except Exception as e:
         return jsonify({"Error": str(e)}), 500
 
+# Let user view one specific post (retrieve one specific post)
+@app.route("/posts/<post_id>", methods=["GET"])
+def get_post(post_id):
+    try:
+        res = supabase.table("posts").select("*").eq("id", post_id).execute()
+        if not res.data:
+            return jsonify({
+                "Error": "Post not found."
+            }), 404
+        
+        return jsonify(res.data[0]), 200
+    except Exception as e:
+        return jsonify({
+            "Error": str(e)
+        }), 500
+
+# Delete the post (if the requester is the creator)
+@app.route("/posts/<post_id>", methods=["DELETE"])
+def delete_post(post_id):
+    try:
+        # Will use this space to check if the user owns the post later
+
+        #Delete one post (if that post exists)
+        res = supabase.table("posts").delete().eq("id", post_id).execute()
+        if res.count == 0:
+            return jsonify({
+                "Error": "Post not found"
+            }), 404
+        return jsonify({
+            "Message": "Delete post successfully."
+        }), 200
+    
+    except Exception as e:
+        return jsonify({
+            "Error": str(e)
+        }), 500
+
+
+
 
 #Get all recipes
 @app.route("/getRecipes", methods=["GET"])
