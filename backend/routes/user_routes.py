@@ -134,7 +134,7 @@ def authorize_google():
         # Existing user - redirect to profile page
         return redirect(f"{app.config['FRONTEND_URL']}/profile?token={jwt_token}")
 
-@users_bp.route('/api/user/register', methods=['POST'])
+@users_bp.route('/register', methods=['POST'])
 @jwt_required
 def complete_profile():
 
@@ -177,7 +177,7 @@ def complete_profile():
     
     return jsonify({"message": "User registered successfully", "user_id": new_id}), 201
 
-@users_bp.route('/api/user/profile', methods=['GET'])
+@users_bp.route('/profile', methods=['GET'])
 @jwt_required
 def get_profile():
     """Get the current user's profile information"""
@@ -195,7 +195,7 @@ def get_profile():
         "following_count": user.following.count(),
     }), 200
 
-@users_bp.route('/api/user/update', methods=['PUT'])
+@users_bp.route('/update', methods=['PUT'])
 @jwt_required
 def update_user():
     
@@ -227,7 +227,7 @@ def update_user():
     else:
         return jsonify({"message": "No valid fields to update"}), 400
     
-@users_bp.route('/api/user/connections', methods=['GET'])
+@users_bp.route('/connections', methods=['GET'])
 @jwt_required
 def get_followers():
     """Get the current user's followers list"""
@@ -253,7 +253,7 @@ def get_followers():
     }), 200
 
 # API to be used during registration and name changes to check if a username is already taken
-@users_bp.route('/api/user/check_username', methods=['GET'])
+@users_bp.route('/check_username', methods=['GET'])
 def check_username():
 
     username = request.args.get('username', None)
@@ -267,7 +267,7 @@ def check_username():
         return jsonify({"exists": False}), 200
 
 # --- FOLLOW REQUESTS API ---
-@users_bp.route('/api/user/follow-request', methods=['POST'])
+@users_bp.route('/follow-request', methods=['POST'])
 @jwt_required
 def send_follow_request():
     data = request.get_json()
@@ -300,7 +300,7 @@ def send_follow_request():
 
 
 # Get received follow requests (pending)
-@users_bp.route('/api/user/follow-requests/received', methods=['GET'])
+@users_bp.route('/follow-requests/received', methods=['GET'])
 @jwt_required
 def get_received_follow_requests():
     user = User.query.filter_by(email=g.jwt['email']).first()
@@ -322,7 +322,7 @@ def get_received_follow_requests():
 
 
 # Get sent follow requests (pending)
-@users_bp.route('/api/user/follow-requests/sent', methods=['GET'])
+@users_bp.route('/follow-requests/sent', methods=['GET'])
 @jwt_required
 def get_sent_follow_requests():
     user = User.query.filter_by(email=g.jwt['email']).first()
@@ -343,7 +343,7 @@ def get_sent_follow_requests():
 
 
 # Accept a follow request
-@users_bp.route('/api/user/follow-request/accept', methods=['POST'])
+@users_bp.route('/follow-request/accept', methods=['POST'])
 @jwt_required
 def accept_follow_request():
     data = request.get_json()
@@ -376,7 +376,7 @@ def accept_follow_request():
 
 
 # Reject a follow request
-@users_bp.route('/api/user/follow-request/reject', methods=['POST'])
+@users_bp.route('/follow-request/reject', methods=['POST'])
 @jwt_required
 def reject_follow_request():
     data = request.get_json()
@@ -405,9 +405,40 @@ def reject_follow_request():
     db.session.commit()
     return jsonify({'message': 'Follow request rejected'}), 200
 
+@users_bp.route('/dev/login', methods=['POST'])
+def dev_login():
+    """
+    Dev-only endpoint to get a JWT for local testing.
+    DO NOT enable this in production.
+    """
+    import os
+    import datetime
+    import jwt as pyjwt
+    from flask import request, jsonify
+
+    # Only allow in dev mode
+    if os.getenv("ENV", "dev") != "dev":
+        return jsonify({"error": "dev login disabled"}), 403
+
+    body = request.get_json(silent=True) or {}
+    email = body.get("email", "dev@plated.local")
+
+    payload = {
+        "email": email,
+        "display_name": "Dev User",
+        "exp": int(
+            (datetime.datetime.now(datetime.timezone.utc)
+             + datetime.timedelta(hours=6)
+            ).timestamp()
+        ),
+    }
+
+    token = pyjwt.encode(payload, app.config['JWT_SECRET'], algorithm='HS256')
+    return jsonify({"token": token})
+
 
 # Cancel a sent follow request (optional)
-@users_bp.route('/api/user/follow-request/cancel', methods=['POST'])
+@users_bp.route('/follow-request/cancel', methods=['POST'])
 @jwt_required
 def cancel_follow_request():
     data = request.get_json()

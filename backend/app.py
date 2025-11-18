@@ -1,35 +1,39 @@
 from extensions import app, db
 from flask_cors import CORS
+from flask import jsonify
 
+from routes.user_routes import users_bp
+from routes.posts_routes import posts_bp   
 
-# Configure CORS to allow requests from both local and production frontend
+# CORS
 CORS(app, origins=[
     "http://localhost:5173",
     "http://platedwithfriends.life:5173",
     "http://platedwithfriends.life"
 ], supports_credentials=True)
 
-# Import blueprints after app and db are initialized
-from routes.user_routes import users_bp
+# Register blueprints
+app.register_blueprint(users_bp)   # user routes like /login, /profile, etc.
+app.register_blueprint(posts_bp)   # Chau's routes: /posts, /feed, /create_post, etc.
 
-# Registering Blueprints (Routes)
-app.register_blueprint(users_bp)
+@app.route('/health')
+def health():
+    return jsonify({"status": "ok", "message": "Server is running"}), 200
 
 @app.route('/')
 def index():
-    """Root endpoint to confirm server is running"""
     return {
         "status": "ok",
         "message": "Plated Backend API is running",
         "endpoints": {
             "health": "/health",
-            "login": "/login",
-            "user_profile": "/api/user/profile"
+            "profile": "/profile",
+            "posts": "/posts",
+            "feed": "/feed",
         }
     }, 200
 
 if __name__ == '__main__':
-    # Create a db and tables if they don't exist
     with app.app_context():
-        db.create_all()
+        db.create_all()  # for SQLAlchemy user tables (local dev)
     app.run(debug=True, host='0.0.0.0')
