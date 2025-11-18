@@ -14,10 +14,10 @@ load_dotenv()
 
 SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_ANON_KEY = os.getenv("SUPABASE_ANON_KEY")
-# SUPABASE_SERVICE_KEY = os.getenv("SUPABASE_SERVICE_KEY")
+
 
 supabase = create_client(SUPABASE_URL, SUPABASE_ANON_KEY)
-# supabase = create_client(SUPABASE_URL, SUPABASE_SERVICE_KEY)
+
 
 app = Flask(__name__)
 
@@ -48,15 +48,8 @@ def create_post_temp():
     except Exception as e:
         return jsonify({"Error": str(e)}), 500
 
-# Get all posts --> will replace it with the /feed route
-# @app.route("/getPosts", methods=["GET"])
-# def get_all_posts():
-#     try:
-#         response = supabase.table("posts").select("*").order("created_at", desc=True).execute()
-#         return jsonify(response.data), 200
-#     except Exception as e:
-        return jsonify({"Error": str(e)}), 500
 
+#Feed - Get all posts. Default: 10 posts per page
 @app.route("/feed", methods=["GET"])
 def get_feed():
     try: 
@@ -125,7 +118,7 @@ def get_feed():
 
 
 
-# Get posts from one user. View a user's profile and their posts
+# Get all posts from one user. View a user's profile and their posts.
 @app.route("/posts/user/<user_id>", methods=["GET"])
 def get_user_posts(user_id):
     try:
@@ -187,6 +180,7 @@ def create_recipe():
     response = supabase.table("recipes").insert(data).execute()
     return jsonify(response.data)
 
+#Hi em. I think we can delete the above function (/post methods=["POST"]).
 @app.route("/create_post", methods=["POST"])
 def create_post(): #old name: upload_image()
     if "image" not in request.files:
