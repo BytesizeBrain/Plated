@@ -1,20 +1,19 @@
 import uuid
-from sqlalchemy.dialects.postgresql import UUID
 from extensions import db
 
 recipe_tags = db.Table(
     "recipe_tags",
-    db.Column("recipe_id", UUID(as_uuid=True), db.ForeignKey("recipes.id", ondelete="CASCADE"), primary_key=True),
-    db.Column("tag_id",    UUID(as_uuid=True), db.ForeignKey("tags.id", ondelete="CASCADE"), primary_key=True),
+    db.Column("recipe_id", db.Uuid(), db.ForeignKey("recipes.id", ondelete="CASCADE"), primary_key=True),
+    db.Column("tag_id",    db.Uuid(), db.ForeignKey("tags.id", ondelete="CASCADE"), primary_key=True),
 )
 
 class Recipe(db.Model):
     __tablename__ = "recipes"
-    id = db.Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    id = db.Column(db.Uuid(), primary_key=True, default=uuid.uuid4)
     title = db.Column(db.String(255), nullable=False)
     blurb = db.Column(db.Text)
     image_url = db.Column(db.String(1000))
-    author_id = db.Column(UUID(as_uuid=True), db.ForeignKey("users.id"), nullable=False)
+    author_id = db.Column(db.Uuid(), db.ForeignKey("user.id"), nullable=False)
     created_at = db.Column(db.DateTime(timezone=True), server_default=db.func.now())
     tags = db.relationship("Tag", secondary=recipe_tags, lazy="joined")
 
@@ -31,5 +30,5 @@ class Recipe(db.Model):
 
 class Tag(db.Model):
     __tablename__ = "tags"
-    id = db.Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    id = db.Column(db.Uuid(), primary_key=True, default=uuid.uuid4)
     name = db.Column(db.String(100), unique=True, nullable=False)

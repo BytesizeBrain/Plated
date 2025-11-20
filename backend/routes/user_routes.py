@@ -25,11 +25,6 @@ google = oauth.register(
 # Declare this as a blueprint for user-related routes
 users_bp = Blueprint('users', __name__)
 
-@users_bp.route('/health')
-def health_check():
-    """Simple health check endpoint"""
-    return jsonify({"status": "ok", "message": "Server is running"}), 200
-
 def jwt_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
@@ -160,13 +155,7 @@ def complete_profile():
         return jsonify({"error": "Username already taken. Please choose another one."}), 400  # Ideally, the UI calls the GET /api/user/check_username with the username beforehand to avoid this, this is just a fallback
     
     # Generate UUID for new user
-    new_id = str(uuid.uuid4())
-    user = User.query.filter_by(id=new_id).first()
-    while user:
-        logging.warning("UUID collision detected, generating a new UUID.")
-        new_id = str(uuid.uuid4())
-        user = User.query.filter_by(id=new_id).first()
-
+    new_id = uuid.uuid4()
     new_user = User(id=new_id, email=g.jwt['email'], display_name=display_name, username=username, profile_pic=profile_pic)
     try:
         db.session.add(new_user)

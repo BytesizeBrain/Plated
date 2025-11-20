@@ -125,18 +125,18 @@ async function withFallback<T>(
     return mockData;
   } catch (error) {
     // Check if it's a network error or backend not available
-    const isNetworkError = 
+    const isNetworkError =
       !(error as any).response || // No response (network error)
       (error as any).response?.status === 404 || // Endpoint not found
       (error as any).response?.status >= 500 || // Server error
       // In mock mode, also treat 401/403 as reasons to use mock
       (AUTH_MODE === 'mock' && ((error as any).response?.status === 401 || (error as any).response?.status === 403));
-    
+
     if (isNetworkError) {
       console.warn(`⚠️ ${featureName}: Backend unavailable, using mock data fallback`);
       return mockData;
     }
-    
+
     // For other errors (like 401, 403), re-throw to let caller handle
     console.error(`❌ ${featureName}: API error`, error);
     throw error;
@@ -149,7 +149,7 @@ async function withFallback<T>(
  */
 export const registerUser = async (data: RegisterData): Promise<void> => {
   try {
-    await api.post('/api/user/register', data);
+    await api.post('/register', data);
   } catch (error) {
     if (!(error as any).response) {
       throw new Error('Unable to connect to server. Please check your connection.');
@@ -163,14 +163,23 @@ export const registerUser = async (data: RegisterData): Promise<void> => {
  * Falls back to mock data if backend is unavailable
  */
 export const getUserProfile = async (): Promise<UserProfile> => {
-  return withFallback(
-    async () => {
-      const response = await api.get<UserProfile>('/api/user/profile');
-      return response.data;
-    },
-    mockCurrentUser,
-    'User Profile'
-  );
+  // We manually handle the API call here to ensure 404s (User not found) 
+  // are propagated to the caller (Register page) instead of falling back to mock data.
+  try {
+    const response = await api.get<UserProfile>('/profile');
+    return response.data;
+  } catch (error) {
+    // If it's a 404, it means the user is not registered yet. 
+    // We MUST throw this so the Register page knows to show the form.
+    if ((error as any).response?.status === 404) {
+      throw error;
+    }
+
+    // For other errors (network, 500s), we can fall back to mock data 
+    // to allow the app to function in "demo" mode or when backend is down.
+    console.warn(`⚠️ User Profile: Backend unavailable or error, using mock data fallback`);
+    return mockCurrentUser;
+  }
 };
 
 /**
@@ -179,7 +188,7 @@ export const getUserProfile = async (): Promise<UserProfile> => {
  */
 export const updateUser = async (data: UpdateUserData): Promise<void> => {
   try {
-    await api.put('/api/user/update', data);
+    await api.put('/update', data);
   } catch (error) {
     if (!(error as any).response) {
       throw new Error('Unable to connect to server. Please check your connection.');
@@ -195,7 +204,7 @@ export const updateUser = async (data: UpdateUserData): Promise<void> => {
 export const checkUsername = async (username: string): Promise<boolean> => {
   return withFallback(
     async () => {
-      const response = await api.get<CheckUsernameResponse>('/api/user/check_username', {
+      const response = await api.get<CheckUsernameResponse>('/check_username', {
         params: { username },
       });
       return !response.data.exists; // Return true if username is available
@@ -430,20 +439,20 @@ export const getChallenge = async (challengeId: string): Promise<Challenge | nul
     // Check if it's an authentication error that should be re-thrown
     const status = (error as any).response?.status;
     const isAuthError = status === 401 || status === 403;
-    
+
     if (isAuthError) {
       // Re-throw authentication errors to let the axios interceptor handle them
       // This allows proper redirect to login page
       console.error(`❌ Challenge ${challengeId}: Authentication error (${status}), re-throwing for interceptor`);
       throw error;
     }
-    
+
     // Check if it's a network error or backend not available
-    const isNetworkError = 
+    const isNetworkError =
       !(error as any).response || // No response (network error)
       status === 404 || // Endpoint not found
       (status && status >= 500); // Server error
-    
+
     if (isNetworkError) {
       // Try to find in mock data as fallback
       const mockChallenge = mockChallenges.find(c => c.id === challengeId);
@@ -455,7 +464,7 @@ export const getChallenge = async (challengeId: string): Promise<Challenge | nul
       console.error(`❌ Challenge ${challengeId}: Not found in API or mock data`);
       return null;
     }
-    
+
     // For other errors (like 400 Bad Request), re-throw to let caller handle
     console.error(`❌ Challenge ${challengeId}: API error`, error);
     throw error;

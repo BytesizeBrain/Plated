@@ -3,21 +3,21 @@ from extensions import db
 
 followers = db.Table(
     'followers',
-    db.Column('follower_id', db.String(36), db.ForeignKey('user.id'), primary_key=True),
-    db.Column('followed_id', db.String(36), db.ForeignKey('user.id'), primary_key=True)
+    db.Column('follower_id', db.Uuid(), db.ForeignKey('user.id'), primary_key=True),
+    db.Column('followed_id', db.Uuid(), db.ForeignKey('user.id'), primary_key=True)
 )
 
 follow_requests = db.Table(
     'follow_requests',
-    db.Column('requester_id', db.String(36), db.ForeignKey('user.id'), primary_key=True),
-    db.Column('target_id', db.String(36), db.ForeignKey('user.id'), primary_key=True),
-    db.Column('created_at', db.DateTime, server_default=db.func.now()),
+    db.Column('requester_id', db.Uuid(), db.ForeignKey('user.id'), primary_key=True),
+    db.Column('target_id', db.Uuid(), db.ForeignKey('user.id'), primary_key=True),
+    db.Column('created_at', db.DateTime(timezone=True), server_default=db.func.now()),
 )
 
 class User(db.Model):
     # Define the User model
     # No init method as this is a SQLAlchemy model
-    id = db.Column(db.String(36), primary_key=True, unique=True, nullable=False)
+    id = db.Column(db.Uuid(), primary_key=True, unique=True, nullable=False)
     email = db.Column(db.String(128), nullable=False)
     username = db.Column(db.String(64), unique=True, nullable=False)
     display_name = db.Column(db.String(64), nullable=False)

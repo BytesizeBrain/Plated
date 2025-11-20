@@ -7,3 +7,4 @@ PyJWT
 datetime
 flask_cors
 pytest
+supabase
