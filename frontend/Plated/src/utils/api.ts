@@ -2,6 +2,7 @@ import axios from 'axios';
 import { getToken, removeToken } from './auth';
 import { mockFeedPosts, mockConversations, mockCurrentUser, mockComments, mockMessages } from '../data/mockData';
 import { mockChallenges, mockRewardsSummary } from '../data/mockGamificationData';
+
 import type {
   RegisterData,
   UpdateUserData,
@@ -210,33 +211,53 @@ export const checkUsername = async (username: string): Promise<boolean> => {
  * Get feed posts with pagination
  * Falls back to mock data if backend is unavailable
  */
-export const getFeedPosts = async (page: number = 1, filter?: FeedFilter): Promise<{ posts: FeedPost[], has_more: boolean }> => {
+export const getFeedPosts = async (
+  page: number = 1,
+  filter?: FeedFilter
+): Promise<{ posts: FeedPost[]; has_more: boolean }> => {
+  const perPage = 10;
+
   return withFallback(
     async () => {
-      const response = await api.get('/api/feed', {
+      // Call your Flask backend: GET /feed
+      const resp = await api.get<{
+        page: number;
+        per_page: number;
+        feed: FeedPost[];
+      }>("/feed", {
         params: {
           page,
-          limit: 10,
-          type: filter?.type,
-          cuisine: filter?.cuisine,
-          difficulty: filter?.difficulty,
-          max_time: filter?.max_time,
-          sort_by: filter?.sort_by,
+          per_page: perPage,
+          // TODO: when backend supports filters, pass them here:
+          // type: filter?.type,
+          // cuisine: filter?.cuisine,
+          // difficulty: filter?.difficulty,
+          // max_time: filter?.max_time,
+          // sort_by: filter?.sort_by,
         },
       });
-      return response.data;
+
+      const posts = resp.data.feed ?? [];
+
+      return {
+        posts,
+        // simple has_more: if we got a full page, assume more exists
+        has_more: posts.length === perPage,
+      };
     },
     (() => {
-      // Mock data fallback with pagination
-      const startIndex = (page - 1) * 10;
-      const endIndex = startIndex + 10;
+      // 🔁 Mock data fallback with pagination (offline / backend down)
+      const startIndex = (page - 1) * perPage;
+      const endIndex = startIndex + perPage;
       const posts = mockFeedPosts.slice(startIndex, endIndex);
       const hasMore = endIndex < mockFeedPosts.length;
       return { posts, has_more: hasMore };
     })(),
-    'Feed Posts'
+    "Feed Posts"
   );
 };
+
+
 
 /**
  * Like a post
@@ -358,13 +379,17 @@ export const markMessagesAsRead = async (conversationId: string): Promise<void> 
 export const getUnreadCount = async (): Promise<number> => {
   return withFallback(
     async () => {
-      const response = await api.get<{ count: number }>('/api/messages/unread');
+      // our Flask backend exposes GET /unread
+      const response = await api.get<{ count: number }>('/unread');
       return response.data.count;
     },
+    // fallback: sum mock unread counts if backend is down
     mockConversations.reduce((sum, conv) => sum + conv.unread_count, 0),
     'Unread Count'
   );
 };
+
+
 
 /**
  * Create or get a conversation with a user
