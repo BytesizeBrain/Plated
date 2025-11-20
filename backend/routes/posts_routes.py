@@ -34,6 +34,18 @@ def create_post_temp():
     except Exception as e:
         return jsonify({"Error": str(e)}), 500
 
+@posts_bp.route("/posts", methods=["GET"])
+def list_posts():
+    try:
+        res = supabase.table("posts") \
+            .select("*") \
+            .order("created_at", desc=True) \
+            .execute()
+        
+        return jsonify(res.data), 200
+
+    except Exception as e:
+        return jsonify({"Error": str(e)}), 500
 
 @posts_bp.route("/feed", methods=["GET"])
 def get_feed():
