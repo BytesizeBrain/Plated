@@ -1,6 +1,6 @@
 import logging
 import uuid
-from flask import Blueprint, render_template, request, jsonify, redirect, url_for, g
+from flask import Blueprint, request, jsonify, redirect, url_for, g
 from authlib.integrations.flask_client import OAuth
 import jwt
 import datetime
