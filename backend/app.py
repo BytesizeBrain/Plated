@@ -1,9 +1,15 @@
 from extensions import app, db
 from flask_cors import CORS
 from flask import jsonify
+import os
 
+from werkzeug.middleware.proxy_fix import ProxyFix
 from routes.user_routes import users_bp
 from routes.posts_routes import posts_bp   
+
+# Configure ProxyFix for Nginx (only in production)
+if os.getenv('FLASK_ENV') == 'production':
+    app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1)
 
 # CORS
 CORS(app, origins=[
