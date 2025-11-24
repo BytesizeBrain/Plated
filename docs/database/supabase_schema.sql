@@ -48,3 +48,36 @@ CREATE TABLE IF NOT EXISTS post_views (
 
 CREATE INDEX idx_post_views_post_id ON post_views(post_id);
 CREATE INDEX idx_post_views_user_id ON post_views(user_id);
+
+-- ============================================
+-- RECIPE DATA ENHANCEMENT
+-- ============================================
+
+-- Add recipe-specific columns to posts table
+ALTER TABLE posts
+ADD COLUMN IF NOT EXISTS post_type VARCHAR(20) DEFAULT 'simple' CHECK (post_type IN ('simple', 'recipe'));
+
+ALTER TABLE posts
+ADD COLUMN IF NOT EXISTS recipe_data JSONB;
+
+-- Recipe data structure (when post_type = 'recipe'):
+-- {
+--   "title": "Chicken Alfredo",
+--   "prep_time": 15,
+--   "cook_time": 30,
+--   "servings": 4,
+--   "difficulty": "medium",
+--   "cuisine": "Italian",
+--   "ingredients": [
+--     { "item": "chicken breast", "amount": "2", "unit": "lbs" },
+--     { "item": "fettuccine", "amount": "1", "unit": "lb" }
+--   ],
+--   "instructions": [
+--     "Season chicken with salt and pepper",
+--     "Cook pasta according to package directions",
+--     "Make alfredo sauce"
+--   ],
+--   "tags": ["dinner", "italian", "comfort-food"]
+-- }
+
+CREATE INDEX idx_posts_post_type ON posts(post_type);
