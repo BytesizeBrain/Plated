@@ -81,3 +81,30 @@ ADD COLUMN IF NOT EXISTS recipe_data JSONB;
 -- }
 
 CREATE INDEX idx_posts_post_type ON posts(post_type);
+
+-- ============================================
+-- SOCIAL FEATURES TABLES
+-- ============================================
+
+-- Followers table (many-to-many relationship)
+CREATE TABLE IF NOT EXISTS followers (
+  follower_id UUID NOT NULL,
+  followed_id UUID NOT NULL,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  PRIMARY KEY (follower_id, followed_id),
+  CHECK (follower_id != followed_id)
+);
+
+CREATE INDEX idx_followers_follower_id ON followers(follower_id);
+CREATE INDEX idx_followers_followed_id ON followers(followed_id);
+
+-- Follow requests table (for future private accounts)
+CREATE TABLE IF NOT EXISTS follow_requests (
+  requester_id UUID NOT NULL,
+  target_id UUID NOT NULL,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  PRIMARY KEY (requester_id, target_id),
+  CHECK (requester_id != target_id)
+);
+
+CREATE INDEX idx_follow_requests_target_id ON follow_requests(target_id);
