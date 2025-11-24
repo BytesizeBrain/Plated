@@ -144,3 +144,76 @@ CREATE TABLE IF NOT EXISTS messages (
 CREATE INDEX idx_messages_conversation_id ON messages(conversation_id);
 CREATE INDEX idx_messages_sender_id ON messages(sender_id);
 CREATE INDEX idx_messages_created_at ON messages(created_at);
+
+-- ============================================
+-- GAMIFICATION TABLES (SKELETAL)
+-- ============================================
+
+-- User gamification stats
+CREATE TABLE IF NOT EXISTS user_gamification (
+  user_id UUID PRIMARY KEY,
+  xp INTEGER DEFAULT 0,
+  level INTEGER DEFAULT 1,
+  coins INTEGER DEFAULT 0,
+  current_streak INTEGER DEFAULT 0,
+  longest_streak INTEGER DEFAULT 0,
+  last_activity_date DATE,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Badges
+CREATE TABLE IF NOT EXISTS badges (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  name VARCHAR(100) NOT NULL UNIQUE,
+  description TEXT,
+  icon_url TEXT,
+  criteria TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- User badges (many-to-many)
+CREATE TABLE IF NOT EXISTS user_badges (
+  user_id UUID NOT NULL,
+  badge_id UUID REFERENCES badges(id) ON DELETE CASCADE NOT NULL,
+  earned_at TIMESTAMPTZ DEFAULT NOW(),
+  PRIMARY KEY (user_id, badge_id)
+);
+
+CREATE INDEX idx_user_badges_user_id ON user_badges(user_id);
+
+-- Challenges
+CREATE TABLE IF NOT EXISTS challenges (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  title VARCHAR(255) NOT NULL,
+  description TEXT,
+  type VARCHAR(50) NOT NULL,
+  difficulty VARCHAR(20),
+  xp_reward INTEGER DEFAULT 0,
+  coin_reward INTEGER DEFAULT 0,
+  start_date TIMESTAMPTZ,
+  end_date TIMESTAMPTZ,
+  is_active BOOLEAN DEFAULT TRUE,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- User challenge progress
+CREATE TABLE IF NOT EXISTS user_challenges (
+  user_id UUID NOT NULL,
+  challenge_id UUID REFERENCES challenges(id) ON DELETE CASCADE NOT NULL,
+  status VARCHAR(20) DEFAULT 'not_started' CHECK (status IN ('not_started', 'in_progress', 'completed')),
+  progress INTEGER DEFAULT 0,
+  completed_at TIMESTAMPTZ,
+  PRIMARY KEY (user_id, challenge_id)
+);
+
+CREATE INDEX idx_user_challenges_user_id ON user_challenges(user_id);
+CREATE INDEX idx_user_challenges_status ON user_challenges(status);
+
+-- Sample badges for testing
+INSERT INTO badges (name, description, icon_url, criteria) VALUES
+('First Post', 'Created your first post', NULL, 'Create 1 post'),
+('Recipe Master', 'Posted 10 recipes', NULL, 'Create 10 recipe posts'),
+('Social Butterfly', 'Followed 25 users', NULL, 'Follow 25 users'),
+('Engagement King', 'Received 100 likes', NULL, 'Get 100 likes on posts'),
+('Week Warrior', 'Maintained a 7-day streak', NULL, '7-day activity streak');
