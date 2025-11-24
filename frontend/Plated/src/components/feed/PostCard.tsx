@@ -164,8 +164,8 @@ function PostCard({ post }: PostCardProps) {
 
       {/* Post Stats */}
       <div className="post-stats">
-        <span>{post.likes_count.toLocaleString()} likes</span>
-        <span>{post.views_count.toLocaleString()} views</span>
+        <span>{(post.likes_count || 0).toLocaleString()} likes</span>
+        <span>{(post.views_count || 0).toLocaleString()} views</span>
       </div>
 
       {/* Engagement Buttons */}
