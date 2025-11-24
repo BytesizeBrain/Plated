@@ -108,3 +108,39 @@ CREATE TABLE IF NOT EXISTS follow_requests (
 );
 
 CREATE INDEX idx_follow_requests_target_id ON follow_requests(target_id);
+
+-- ============================================
+-- MESSAGING SYSTEM TABLES
+-- ============================================
+
+-- Conversations table
+CREATE TABLE IF NOT EXISTS conversations (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Conversation participants (many-to-many)
+CREATE TABLE IF NOT EXISTS conversation_participants (
+  conversation_id UUID REFERENCES conversations(id) ON DELETE CASCADE NOT NULL,
+  user_id UUID NOT NULL,
+  joined_at TIMESTAMPTZ DEFAULT NOW(),
+  last_read_at TIMESTAMPTZ DEFAULT NOW(),
+  PRIMARY KEY (conversation_id, user_id)
+);
+
+CREATE INDEX idx_conversation_participants_user_id ON conversation_participants(user_id);
+
+-- Messages table
+CREATE TABLE IF NOT EXISTS messages (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  conversation_id UUID REFERENCES conversations(id) ON DELETE CASCADE NOT NULL,
+  sender_id UUID NOT NULL,
+  content TEXT NOT NULL,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  is_read BOOLEAN DEFAULT FALSE
+);
+
+CREATE INDEX idx_messages_conversation_id ON messages(conversation_id);
+CREATE INDEX idx_messages_sender_id ON messages(sender_id);
+CREATE INDEX idx_messages_created_at ON messages(created_at);
