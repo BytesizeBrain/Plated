@@ -2,9 +2,19 @@ from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 import os
 from dotenv import load_dotenv
+from pathlib import Path
 
-# Load environment variables from .env file
+# Load environment variables from .env file first
+# This is the default file used in production/cloud deployments
 load_dotenv()
+
+# Override with env.development.local if it exists (for local development only)
+# This file is git-ignored and won't exist in cloud deployments, so it's safe to check
+# In cloud: this check will be False, so only .env will be used
+# Locally: if this file exists, it will override .env values
+dev_local_env = Path(__file__).parent / 'env.development.local'
+if dev_local_env.exists():
+    load_dotenv(dev_local_env, override=True)
 
 # Initialize Flask app
 app = Flask(__name__)

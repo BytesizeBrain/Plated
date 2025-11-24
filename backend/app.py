@@ -20,7 +20,7 @@ CORS(app, origins=[
 
 # Register blueprints
 app.register_blueprint(users_bp)   # user routes like /login, /profile, etc.
-app.register_blueprint(posts_bp)   # Chau's routes: /posts, /feed, /create_post, etc.
+app.register_blueprint(posts_bp, url_prefix='/api')   # Chau's routes: /api/posts, /api/feed, /api/create_post, etc.
 
 @app.route('/health')
 def health():

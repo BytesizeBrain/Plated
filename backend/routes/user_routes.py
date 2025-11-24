@@ -460,3 +460,25 @@ def get_user_id_by_email(email):
     """Helper function to get a user's id by email. Returns None if not found."""
     user = User.query.filter_by(email=email).first()
     return user.id if user else None
+
+
+# --- MESSAGE/CONVERSATION API STUBS ---
+# These are placeholder endpoints until full message system is implemented
+
+@users_bp.route('/api/messages/unread', methods=['GET'])
+@jwt_required
+def get_unread_message_count():
+    """
+    Get unread message count for the current user
+    
+    Returns:
+        JSON: {"count": number}
+    
+    Note: This is currently a stub endpoint that returns 0.
+    TODO: Implement real message counting when message system is built.
+    """
+    # TODO: Query messages table for unread count when implemented
+    # Example future implementation:
+    # user = User.query.filter_by(email=g.jwt['email']).first()
+    # count = Message.query.filter_by(recipient_id=user.id, is_read=False).count()
+    return jsonify({"count": 0}), 200

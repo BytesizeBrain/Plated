@@ -228,12 +228,12 @@ export const getFeedPosts = async (
 
   return withFallback(
     async () => {
-      // Call your Flask backend: GET /feed
+      // Call your Flask backend: GET /api/feed
       const resp = await api.get<{
         page: number;
         per_page: number;
-        feed: FeedPost[];
-      }>("/feed", {
+        feed: any[];
+      }>("/api/feed", {
         params: {
           page,
           per_page: perPage,
@@ -246,7 +246,27 @@ export const getFeedPosts = async (
         },
       });
 
-      const posts = resp.data.feed ?? [];
+      // Transform backend response to match frontend FeedPost structure
+      const backendPosts = resp.data.feed ?? [];
+      const posts: FeedPost[] = backendPosts.map((post: any) => ({
+        id: post.id,
+        user_id: post.user?.id || '',
+        user: {
+          username: post.user?.username || 'unknown',
+          display_name: post.user?.username || 'Unknown User',
+          profile_pic: post.user?.profile_pic || '',
+        },
+        title: post.caption || 'Untitled Post',
+        description: post.caption || '',
+        media_url: post.image_url,
+        media_type: 'image' as const,
+        likes_count: post.likes_count || 0,
+        comments_count: post.comments_count || 0,
+        views_count: post.views_count || 0,
+        is_liked: post.is_liked || false,
+        is_saved: post.is_saved || false,
+        created_at: post.created_at,
+      }));
 
       return {
         posts,
@@ -388,8 +408,8 @@ export const markMessagesAsRead = async (conversationId: string): Promise<void> 
 export const getUnreadCount = async (): Promise<number> => {
   return withFallback(
     async () => {
-      // our Flask backend exposes GET /unread
-      const response = await api.get<{ count: number }>('/unread');
+      // Flask backend endpoint: GET /api/messages/unread
+      const response = await api.get<{ count: number }>('/api/messages/unread');
       return response.data.count;
     },
     // fallback: sum mock unread counts if backend is down
