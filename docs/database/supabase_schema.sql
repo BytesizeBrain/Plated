@@ -8,11 +8,31 @@ CREATE TABLE IF NOT EXISTS posts (
   user_id UUID NOT NULL,
   image_url TEXT NOT NULL,
   caption TEXT,
-  post_type VARCHAR(20) DEFAULT 'simple' CHECK (post_type IN ('simple', 'recipe')),
-  recipe_data JSONB,
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
+
+-- Add post_type and recipe_data columns if they don't exist
+DO $$ 
+BEGIN
+  -- Add post_type column if it doesn't exist
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns 
+                 WHERE table_name = 'posts' AND column_name = 'post_type') THEN
+    ALTER TABLE posts ADD COLUMN post_type VARCHAR(20) DEFAULT 'simple';
+  END IF;
+  
+  -- Add check constraint if it doesn't exist
+  IF NOT EXISTS (SELECT 1 FROM information_schema.table_constraints 
+                 WHERE table_name = 'posts' AND constraint_name = 'check_post_type') THEN
+    ALTER TABLE posts ADD CONSTRAINT check_post_type CHECK (post_type IN ('simple', 'recipe'));
+  END IF;
+  
+  -- Add recipe_data column if it doesn't exist
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns 
+                 WHERE table_name = 'posts' AND column_name = 'recipe_data') THEN
+    ALTER TABLE posts ADD COLUMN recipe_data JSONB;
+  END IF;
+END $$;
 
 CREATE INDEX IF NOT EXISTS idx_posts_user_id ON posts(user_id);
 CREATE INDEX IF NOT EXISTS idx_posts_created_at ON posts(created_at);
@@ -51,8 +71,8 @@ CREATE TABLE IF NOT EXISTS likes (
   UNIQUE(post_id, user_id)
 );
 
-CREATE INDEX idx_likes_post_id ON likes(post_id);
-CREATE INDEX idx_likes_user_id ON likes(user_id);
+CREATE INDEX IF NOT EXISTS idx_likes_post_id ON likes(post_id);
+CREATE INDEX IF NOT EXISTS idx_likes_user_id ON likes(user_id);
 
 -- Comments table
 CREATE TABLE IF NOT EXISTS comments (
@@ -63,8 +83,8 @@ CREATE TABLE IF NOT EXISTS comments (
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
-CREATE INDEX idx_comments_post_id ON comments(post_id);
-CREATE INDEX idx_comments_user_id ON comments(user_id);
+CREATE INDEX IF NOT EXISTS idx_comments_post_id ON comments(post_id);
+CREATE INDEX IF NOT EXISTS idx_comments_user_id ON comments(user_id);
 
 -- Saved posts table
 CREATE TABLE IF NOT EXISTS saved_posts (
@@ -75,8 +95,8 @@ CREATE TABLE IF NOT EXISTS saved_posts (
   UNIQUE(post_id, user_id)
 );
 
-CREATE INDEX idx_saved_posts_user_id ON saved_posts(user_id);
-CREATE INDEX idx_saved_posts_post_id ON saved_posts(post_id);
+CREATE INDEX IF NOT EXISTS idx_saved_posts_user_id ON saved_posts(user_id);
+CREATE INDEX IF NOT EXISTS idx_saved_posts_post_id ON saved_posts(post_id);
 
 -- Post views table
 CREATE TABLE IF NOT EXISTS post_views (
@@ -86,8 +106,8 @@ CREATE TABLE IF NOT EXISTS post_views (
   viewed_at TIMESTAMPTZ DEFAULT NOW()
 );
 
-CREATE INDEX idx_post_views_post_id ON post_views(post_id);
-CREATE INDEX idx_post_views_user_id ON post_views(user_id);
+CREATE INDEX IF NOT EXISTS idx_post_views_post_id ON post_views(post_id);
+CREATE INDEX IF NOT EXISTS idx_post_views_user_id ON post_views(user_id);
 
 -- ============================================
 -- SOCIAL FEATURES TABLES
@@ -102,8 +122,19 @@ CREATE TABLE IF NOT EXISTS followers (
   CHECK (follower_id != followed_id)
 );
 
-CREATE INDEX idx_followers_follower_id ON followers(follower_id);
-CREATE INDEX idx_followers_followed_id ON followers(followed_id);
+-- Create indexes only if columns exist (handles case where table exists with different structure)
+DO $$
+BEGIN
+  IF EXISTS (SELECT 1 FROM information_schema.columns 
+             WHERE table_name = 'followers' AND column_name = 'follower_id') THEN
+    CREATE INDEX IF NOT EXISTS idx_followers_follower_id ON followers(follower_id);
+  END IF;
+  
+  IF EXISTS (SELECT 1 FROM information_schema.columns 
+             WHERE table_name = 'followers' AND column_name = 'followed_id') THEN
+    CREATE INDEX IF NOT EXISTS idx_followers_followed_id ON followers(followed_id);
+  END IF;
+END $$;
 
 -- Follow requests table (for future private accounts)
 CREATE TABLE IF NOT EXISTS follow_requests (
@@ -114,7 +145,7 @@ CREATE TABLE IF NOT EXISTS follow_requests (
   CHECK (requester_id != target_id)
 );
 
-CREATE INDEX idx_follow_requests_target_id ON follow_requests(target_id);
+CREATE INDEX IF NOT EXISTS idx_follow_requests_target_id ON follow_requests(target_id);
 
 -- ============================================
 -- MESSAGING SYSTEM TABLES
@@ -136,7 +167,7 @@ CREATE TABLE IF NOT EXISTS conversation_participants (
   PRIMARY KEY (conversation_id, user_id)
 );
 
-CREATE INDEX idx_conversation_participants_user_id ON conversation_participants(user_id);
+CREATE INDEX IF NOT EXISTS idx_conversation_participants_user_id ON conversation_participants(user_id);
 
 -- Messages table
 CREATE TABLE IF NOT EXISTS messages (
@@ -148,9 +179,9 @@ CREATE TABLE IF NOT EXISTS messages (
   is_read BOOLEAN DEFAULT FALSE
 );
 
-CREATE INDEX idx_messages_conversation_id ON messages(conversation_id);
-CREATE INDEX idx_messages_sender_id ON messages(sender_id);
-CREATE INDEX idx_messages_created_at ON messages(created_at);
+CREATE INDEX IF NOT EXISTS idx_messages_conversation_id ON messages(conversation_id);
+CREATE INDEX IF NOT EXISTS idx_messages_sender_id ON messages(sender_id);
+CREATE INDEX IF NOT EXISTS idx_messages_created_at ON messages(created_at);
 
 -- ============================================
 -- GAMIFICATION TABLES (SKELETAL)
@@ -187,7 +218,7 @@ CREATE TABLE IF NOT EXISTS user_badges (
   PRIMARY KEY (user_id, badge_id)
 );
 
-CREATE INDEX idx_user_badges_user_id ON user_badges(user_id);
+CREATE INDEX IF NOT EXISTS idx_user_badges_user_id ON user_badges(user_id);
 
 -- Challenges
 CREATE TABLE IF NOT EXISTS challenges (
@@ -214,13 +245,14 @@ CREATE TABLE IF NOT EXISTS user_challenges (
   PRIMARY KEY (user_id, challenge_id)
 );
 
-CREATE INDEX idx_user_challenges_user_id ON user_challenges(user_id);
-CREATE INDEX idx_user_challenges_status ON user_challenges(status);
+CREATE INDEX IF NOT EXISTS idx_user_challenges_user_id ON user_challenges(user_id);
+CREATE INDEX IF NOT EXISTS idx_user_challenges_status ON user_challenges(status);
 
--- Sample badges for testing
+-- Sample badges for testing (insert only if they don't exist)
 INSERT INTO badges (name, description, icon_url, criteria) VALUES
 ('First Post', 'Created your first post', NULL, 'Create 1 post'),
 ('Recipe Master', 'Posted 10 recipes', NULL, 'Create 10 recipe posts'),
 ('Social Butterfly', 'Followed 25 users', NULL, 'Follow 25 users'),
 ('Engagement King', 'Received 100 likes', NULL, 'Get 100 likes on posts'),
-('Week Warrior', 'Maintained a 7-day streak', NULL, '7-day activity streak');
+('Week Warrior', 'Maintained a 7-day streak', NULL, '7-day activity streak')
+ON CONFLICT (name) DO NOTHING;
