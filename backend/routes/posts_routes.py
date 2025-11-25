@@ -181,6 +181,64 @@ def create_recipe():
         return jsonify({"Error": str(e)}), 500
 
 
+@posts_bp.route("/posts/create", methods=["POST"])
+def create_post_with_data():
+    """
+    Create a post (simple or recipe) with JSON data
+    Expects: post_type, image_url, caption, optional recipe_data
+    """
+    data = request.get_json() or {}
+
+    # Validate required fields
+    post_type = data.get('post_type', 'simple')
+    image_url = data.get('image_url', '').strip()
+    caption = data.get('caption', '').strip()
+
+    if post_type not in ['simple', 'recipe']:
+        return jsonify({"error": "post_type must be 'simple' or 'recipe'"}), 400
+
+    # Validate recipe-specific fields
+    recipe_data = None
+    if post_type == 'recipe':
+        recipe_data = data.get('recipe_data')
+        if not recipe_data:
+            return jsonify({"error": "recipe_data required for recipe posts"}), 400
+
+        # Validate required recipe fields
+        required_fields = ['title', 'ingredients', 'instructions']
+        for field in required_fields:
+            if field not in recipe_data:
+                return jsonify({"error": f"recipe_data.{field} is required"}), 400
+
+        if not isinstance(recipe_data['ingredients'], list) or len(recipe_data['ingredients']) == 0:
+            return jsonify({"error": "recipe_data.ingredients must be non-empty array"}), 400
+
+        if not isinstance(recipe_data['instructions'], list) or len(recipe_data['instructions']) == 0:
+            return jsonify({"error": "recipe_data.instructions must be non-empty array"}), 400
+
+    # TODO: Get user_id from JWT token (for now using mock)
+    # In production: user_id = g.jwt['sub'] or similar
+    user_id = data.get('user_id', str(uuid.uuid4()))
+
+    try:
+        # Insert post into Supabase
+        post_data = {
+            "user_id": user_id,
+            "image_url": image_url if image_url else None,
+            "caption": caption,
+            "post_type": post_type,
+        }
+
+        if recipe_data:
+            post_data["recipe_data"] = recipe_data
+
+        response = supabase.table("posts").insert(post_data).execute()
+
+        return jsonify(response.data[0]), 201
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 @posts_bp.route("/create_post", methods=["POST"])
 def create_post_upload():  # renamed to avoid clashing with create_recipe
     if "image" not in request.files:
