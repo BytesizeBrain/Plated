@@ -5,7 +5,8 @@ import os
 
 from werkzeug.middleware.proxy_fix import ProxyFix
 from routes.user_routes import users_bp
-from routes.posts_routes import posts_bp   
+from routes.posts_routes import posts_bp
+from routes.engagement_routes import engagement_bp   
 
 # Configure ProxyFix for Nginx (only in production)
 if os.getenv('FLASK_ENV') == 'production':
@@ -21,6 +22,7 @@ CORS(app, origins=[
 # Register blueprints
 app.register_blueprint(users_bp)   # user routes like /login, /profile, etc.
 app.register_blueprint(posts_bp, url_prefix='/api')   # Chau's routes: /api/posts, /api/feed, /api/create_post, etc.
+app.register_blueprint(engagement_bp, url_prefix='/api')
 
 @app.route('/health')
 def health():
