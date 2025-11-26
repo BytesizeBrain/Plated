@@ -180,3 +180,89 @@ def delete_comment(comment_id):
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+@engagement_bp.route("/posts/save", methods=["POST"])
+def save_post():
+    """Save/bookmark a post"""
+    data = request.get_json() or {}
+    post_id = data.get('post_id')
+
+    if not post_id:
+        return jsonify({"error": "post_id required"}), 400
+
+    user_id = data.get('user_id', str(uuid.uuid4()))
+
+    try:
+        supabase.table("saved_posts").insert({
+            "post_id": post_id,
+            "user_id": user_id
+        }).execute()
+
+        return jsonify({"saved": True, "message": "Post saved"}), 201
+
+    except Exception as e:
+        if "duplicate" in str(e).lower() or "unique" in str(e).lower():
+            return jsonify({"saved": True, "message": "Already saved"}), 200
+        return jsonify({"error": str(e)}), 500
+
+@engagement_bp.route("/posts/save", methods=["DELETE"])
+def unsave_post():
+    """Unsave/unbookmark a post"""
+    data = request.get_json() or {}
+    post_id = data.get('post_id')
+
+    if not post_id:
+        return jsonify({"error": "post_id required"}), 400
+
+    user_id = data.get('user_id', str(uuid.uuid4()))
+
+    try:
+        supabase.table("saved_posts")\
+            .delete()\
+            .eq("post_id", post_id)\
+            .eq("user_id", user_id)\
+            .execute()
+
+        return jsonify({"saved": False, "message": "Post unsaved"}), 200
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@engagement_bp.route("/posts/saved", methods=["GET"])
+def get_saved_posts():
+    """Get all saved posts for current user"""
+    user_id = request.args.get('user_id', 'mock-user')
+    page = int(request.args.get('page', 1))
+    per_page = int(request.args.get('per_page', 20))
+
+    start = (page - 1) * per_page
+    end = start + per_page - 1
+
+    try:
+        # Get saved post IDs
+        saved_result = supabase.table("saved_posts")\
+            .select("post_id, saved_at")\
+            .eq("user_id", user_id)\
+            .order("saved_at", desc=True)\
+            .range(start, end)\
+            .execute()
+
+        if not saved_result.data:
+            return jsonify({"posts": [], "page": page, "per_page": per_page}), 200
+
+        post_ids = [s['post_id'] for s in saved_result.data]
+
+        # Get full post data
+        posts_result = supabase.table("posts")\
+            .select("*")\
+            .in_("id", post_ids)\
+            .execute()
+
+        return jsonify({
+            "posts": posts_result.data or [],
+            "page": page,
+            "per_page": per_page
+        }), 200
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
