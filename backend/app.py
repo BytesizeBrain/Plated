@@ -7,7 +7,8 @@ from werkzeug.middleware.proxy_fix import ProxyFix
 from routes.user_routes import users_bp
 from routes.posts_routes import posts_bp
 from routes.engagement_routes import engagement_bp
-from routes.social_routes import social_bp   
+from routes.social_routes import social_bp
+from routes.messages_routes import messages_bp   
 
 # Configure ProxyFix for Nginx (only in production)
 if os.getenv('FLASK_ENV') == 'production':
@@ -25,6 +26,7 @@ app.register_blueprint(users_bp)   # user routes like /login, /profile, etc.
 app.register_blueprint(posts_bp, url_prefix='/api')   # Chau's routes: /api/posts, /api/feed, /api/create_post, etc.
 app.register_blueprint(engagement_bp, url_prefix='/api')
 app.register_blueprint(social_bp, url_prefix='/api')
+app.register_blueprint(messages_bp, url_prefix='/api')
 
 @app.route('/health')
 def health():
