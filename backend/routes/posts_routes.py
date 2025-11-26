@@ -1,6 +1,7 @@
 # backend/routes/posts_routes.py
 from flask import Blueprint, request, jsonify
 from supabase_client import supabase
+from services.storage_service import StorageService
 import uuid
 
 posts_bp = Blueprint("posts", __name__)
@@ -277,3 +278,33 @@ def create_post_upload():  # renamed to avoid clashing with create_recipe
 
     except Exception as e:
         return jsonify({"Error": str(e)}), 500
+
+
+@posts_bp.route("/posts/upload-image", methods=["POST"])
+def upload_post_image():
+    """Upload image and return URL"""
+    if 'image' not in request.files:
+        return jsonify({"error": "No image provided"}), 400
+
+    file = request.files['image']
+    if file.filename == '':
+        return jsonify({"error": "No selected file"}), 400
+
+    try:
+        file_data = file.read()
+
+        # Check file size
+        if len(file_data) > StorageService.MAX_FILE_SIZE:
+            return jsonify({"error": "File too large (max 10MB)"}), 400
+
+        image_url = StorageService.upload_post_image(file_data, file.filename)
+
+        return jsonify({
+            "message": "Image uploaded successfully",
+            "image_url": image_url
+        }), 200
+
+    except ValueError as e:
+        return jsonify({"error": str(e)}), 400
+    except Exception as e:
+        return jsonify({"error": "Upload failed"}), 500
