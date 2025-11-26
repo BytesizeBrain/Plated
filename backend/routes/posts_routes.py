@@ -53,14 +53,15 @@ def get_feed():
     try:
         page = int(request.args.get("page", 1))
         per_page = int(request.args.get("per_page", 10))
+        user_id = request.args.get("user_id")  # Current user ID for checking likes/saves
 
         start = (page - 1) * per_page
         end = start + per_page - 1
 
-        # Get all posts with newest first
+        # Get posts
         posts_res = (
             supabase.table("posts")
-            .select("id, user_id, image_url, created_at, caption")  # ✅ one string
+            .select("id, user_id, image_url, created_at, caption, post_type, recipe_data")
             .order("created_at", desc=True)
             .range(start, end)
             .execute()
@@ -68,38 +69,89 @@ def get_feed():
 
         posts = posts_res.data or []
 
-        user_ids = list({p.get("user_id") for p in posts if p.get("user_id")})
-        if not user_ids:
+        if not posts:
             return jsonify({
                 "page": page,
                 "per_page": per_page,
                 "feed": []
             }), 200
 
-        # ⚠️ If your table is actually "users", change "user" → "users"
+        post_ids = [p['id'] for p in posts]
+        user_ids = list({p.get("user_id") for p in posts if p.get("user_id")})
+
+        # Get user info
         users_res = (
             supabase.table("user")
             .select("id, username, profile_pic")
             .in_("id", user_ids)
             .execute()
         )
-
         users_by_id = {u["id"]: u for u in (users_res.data or [])}
 
+        # Get engagement counts - aggregate by post_id
+        likes_res = supabase.table("likes")\
+            .select("post_id")\
+            .in_("post_id", post_ids)\
+            .execute()
+
+        likes_count = {}
+        for like in (likes_res.data or []):
+            post_id = like['post_id']
+            likes_count[post_id] = likes_count.get(post_id, 0) + 1
+
+        comments_res = supabase.table("comments")\
+            .select("post_id")\
+            .in_("post_id", post_ids)\
+            .execute()
+
+        comments_count = {}
+        for comment in (comments_res.data or []):
+            post_id = comment['post_id']
+            comments_count[post_id] = comments_count.get(post_id, 0) + 1
+
+        # Get user-specific engagement status
+        user_likes = {}
+        user_saves = {}
+        if user_id:
+            user_likes_res = supabase.table("likes")\
+                .select("post_id")\
+                .eq("user_id", user_id)\
+                .in_("post_id", post_ids)\
+                .execute()
+            user_likes = {like['post_id']: True for like in (user_likes_res.data or [])}
+
+            user_saves_res = supabase.table("saved_posts")\
+                .select("post_id")\
+                .eq("user_id", user_id)\
+                .in_("post_id", post_ids)\
+                .execute()
+            user_saves = {save['post_id']: True for save in (user_saves_res.data or [])}
+
+        # Build feed response
         feed = []
         for post in posts:
             user = users_by_id.get(post["user_id"])
-            feed.append({
+
+            feed_item = {
                 "id": post["id"],
                 "image_url": post["image_url"],
                 "caption": post["caption"],
+                "post_type": post.get("post_type", "simple"),
+                "recipe_data": post.get("recipe_data"),
                 "created_at": post["created_at"],
                 "user": {
                     "id": post["user_id"],
                     "username": user["username"] if user else "Unknown",
                     "profile_pic": user.get("profile_pic") if user else None,
                 },
-            })
+                "engagement": {
+                    "likes_count": likes_count.get(post["id"], 0),
+                    "comments_count": comments_count.get(post["id"], 0),
+                    "is_liked": user_likes.get(post["id"], False),
+                    "is_saved": user_saves.get(post["id"], False)
+                }
+            }
+            feed.append(feed_item)
 
         return jsonify({
             "page": page,
