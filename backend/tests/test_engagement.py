@@ -54,3 +54,35 @@ def test_check_user_liked_post(client, auth_headers):
     data = response.get_json()
     assert 'liked' in data
     assert isinstance(data['liked'], bool)
+
+def test_create_comment_success(client, auth_headers):
+    """Test creating a comment"""
+    payload = {
+        'post_id': 'test-post-uuid',
+        'content': 'This looks delicious!'
+    }
+
+    response = client.post('/api/posts/comments',
+                          data=json.dumps(payload),
+                          headers={**auth_headers, 'Content-Type': 'application/json'})
+
+    assert response.status_code == 201
+    data = response.get_json()
+    assert data['content'] == 'This looks delicious!'
+    assert 'id' in data
+
+def test_get_post_comments(client):
+    """Test getting comments for a post"""
+    response = client.get('/api/posts/test-post-uuid/comments')
+
+    assert response.status_code == 200
+    data = response.get_json()
+    assert 'comments' in data
+    assert isinstance(data['comments'], list)
+
+def test_delete_comment_success(client, auth_headers):
+    """Test deleting a comment"""
+    response = client.delete('/api/posts/comments/comment-uuid',
+                            headers=auth_headers)
+
+    assert response.status_code == 200

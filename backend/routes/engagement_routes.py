@@ -91,3 +91,92 @@ def check_user_liked_post(post_id):
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+@engagement_bp.route("/posts/comments", methods=["POST"])
+def create_comment():
+    """Create a comment on a post"""
+    data = request.get_json() or {}
+    post_id = data.get('post_id')
+    content = data.get('content', '').strip()
+
+    if not post_id or not content:
+        return jsonify({"error": "post_id and content required"}), 400
+
+    user_id = data.get('user_id', str(uuid.uuid4()))
+
+    try:
+        # NOTE: DB column is 'text', not 'content'
+        result = supabase.table("comments").insert({
+            "post_id": post_id,
+            "user_id": user_id,
+            "text": content  # DB uses 'text' column
+        }).execute()
+
+        # Return with 'content' key for API consistency
+        comment_data = result.data[0]
+        comment_data['content'] = comment_data.get('text', '')
+
+        return jsonify(comment_data), 201
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@engagement_bp.route("/posts/<post_id>/comments", methods=["GET"])
+def get_post_comments(post_id):
+    """Get all comments for a post"""
+    try:
+        # Get comments with user info
+        comments_result = supabase.table("comments")\
+            .select("*")\
+            .eq("post_id", post_id)\
+            .order("created_at", desc=False)\
+            .execute()
+
+        comments = comments_result.data or []
+
+        # Get user info for each comment
+        user_ids = list(set(c['user_id'] for c in comments))
+        if user_ids:
+            users_result = supabase.table("user")\
+                .select("id, username, profile_pic")\
+                .in_("id", user_ids)\
+                .execute()
+
+            users_map = {u['id']: u for u in (users_result.data or [])}
+
+            # Attach user info to comments and map 'text' to 'content'
+            for comment in comments:
+                user = users_map.get(comment['user_id'], {})
+                comment['user'] = {
+                    'username': user.get('username', 'Unknown'),
+                    'profile_pic': user.get('profile_pic')
+                }
+                # Map DB 'text' column to API 'content' key
+                comment['content'] = comment.get('text', '')
+
+        return jsonify({"comments": comments, "count": len(comments)}), 200
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@engagement_bp.route("/posts/comments/<comment_id>", methods=["DELETE"])
+def delete_comment(comment_id):
+    """Delete a comment (user must own it)"""
+    # TODO: Verify user owns comment via JWT
+    user_id = request.args.get('user_id', 'mock-user')
+
+    try:
+        # Delete only if user owns it
+        result = supabase.table("comments")\
+            .delete()\
+            .eq("id", comment_id)\
+            .eq("user_id", user_id)\
+            .execute()
+
+        if not result.data:
+            return jsonify({"error": "Comment not found or unauthorized"}), 404
+
+        return jsonify({"message": "Comment deleted"}), 200
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
