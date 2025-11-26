@@ -15,9 +15,13 @@ from routes.gamification_routes import gamification_bp
 if os.getenv('FLASK_ENV') == 'production':
     app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1)
 
-# CORS
+# CORS - Allow localhost on multiple ports for development
 CORS(app, origins=[
     "http://localhost:5173",
+    "http://localhost:5174",
+    "http://localhost:5175",
+    "http://127.0.0.1:5173",
+    "http://127.0.0.1:5174",
     "http://platedwithfriends.life:5173",
     "http://platedwithfriends.life"
 ], supports_credentials=True)
