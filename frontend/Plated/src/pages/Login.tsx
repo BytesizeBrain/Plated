@@ -19,37 +19,18 @@ function Login() {
     window.location.href = `${API_BASE_URL}/login`;
   };
 
-  const handleMockLogin = async () => {
-    try {
-      // Use the backend's dev login endpoint
-      // For local development, always use localhost:5000
-      const devApiUrl = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-        ? 'http://localhost:5000'
-        : API_BASE_URL;
-      
-      const response = await fetch(`${devApiUrl}/dev/login`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          email: 'dev@plated.local',
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Dev login failed');
-      }
-
-      const data = await response.json();
-      const token = data.token;
-      
-      setToken(token);
-      navigate('/register?token=' + token);
-    } catch (error) {
-      console.error('Mock login error:', error);
-      alert('Mock login failed. Make sure the backend server is running on http://localhost:5000');
-    }
+  const handleMockLogin = () => {
+    // For testing/preview without backend
+    // Create a mock JWT-like token (just a placeholder)
+    const mockToken = btoa(JSON.stringify({
+      email: mockCurrentUser.email,
+      name: mockCurrentUser.display_name,
+      picture: mockCurrentUser.profile_pic,
+      exp: Math.floor(Date.now() / 1000) + 3600, // 1 hour expiry
+    }));
+    
+    setToken(mockToken);
+    navigate('/register?token=' + mockToken);
   };
 
   return (

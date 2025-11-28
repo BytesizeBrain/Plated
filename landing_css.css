@@ -359,12 +359,47 @@
   position: relative;
 }
 
-.landing-video {
+.mock-recipe-card {
   width: 100%;
   height: 100%;
-  object-fit: cover;
-  border-radius: 32px;
-  display: block;
+  display: flex;
+  flex-direction: column;
+}
+
+.mock-video {
+  flex: 1;
+  background: linear-gradient(135deg, #667eea33, #764ba233);
+  position: relative;
+  overflow: hidden;
+}
+
+.mock-video::before {
+  content: '▶';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 3rem;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.mock-info {
+  padding: var(--spacing-md);
+  background: var(--color-bg-card);
+}
+
+.mock-title {
+  height: 16px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+  margin-bottom: var(--spacing-xs);
+}
+
+.mock-stats {
+  height: 12px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  width: 60%;
 }
 
 /* ============================================

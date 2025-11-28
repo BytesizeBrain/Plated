@@ -5,23 +5,15 @@ import os
 
 from werkzeug.middleware.proxy_fix import ProxyFix
 from routes.user_routes import users_bp
-from routes.posts_routes import posts_bp
-from routes.engagement_routes import engagement_bp
-from routes.social_routes import social_bp
-from routes.messages_routes import messages_bp
-from routes.gamification_routes import gamification_bp   
+from routes.posts_routes import posts_bp   
 
 # Configure ProxyFix for Nginx (only in production)
 if os.getenv('FLASK_ENV') == 'production':
     app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1)
 
-# CORS - Allow localhost on multiple ports for development
+# CORS
 CORS(app, origins=[
     "http://localhost:5173",
-    "http://localhost:5174",
-    "http://localhost:5175",
-    "http://127.0.0.1:5173",
-    "http://127.0.0.1:5174",
     "http://platedwithfriends.life:5173",
     "http://platedwithfriends.life"
 ], supports_credentials=True)
@@ -29,10 +21,6 @@ CORS(app, origins=[
 # Register blueprints
 app.register_blueprint(users_bp)   # user routes like /login, /profile, etc.
 app.register_blueprint(posts_bp, url_prefix='/api')   # Chau's routes: /api/posts, /api/feed, /api/create_post, etc.
-app.register_blueprint(engagement_bp, url_prefix='/api')
-app.register_blueprint(social_bp, url_prefix='/api')
-app.register_blueprint(messages_bp, url_prefix='/api')
-app.register_blueprint(gamification_bp, url_prefix='/api')
 
 @app.route('/health')
 def health():

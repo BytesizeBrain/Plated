@@ -405,13 +405,9 @@ def dev_login():
     import jwt as pyjwt
     from flask import request, jsonify
 
-    # Only allow in dev mode (default to dev if not set for local development)
-    env_mode = os.getenv("ENV", "dev").lower()
-    flask_env = os.getenv("FLASK_ENV", "development").lower()
-    
-    # Disable in production
-    if env_mode == "production" or flask_env == "production":
-        return jsonify({"error": "dev login disabled in production"}), 403
+    # Only allow in dev mode
+    if os.getenv("ENV", "dev") != "dev":
+        return jsonify({"error": "dev login disabled"}), 403
 
     body = request.get_json(silent=True) or {}
     email = body.get("email", "dev@plated.local")

@@ -20,35 +20,29 @@ import type {
 
 // Determine the base URL for the backend API with environment fallbacks
 const resolveApiBaseUrl = (): string => {
-  // First check: If we're on localhost, always use localhost:5000
-  if (typeof window !== 'undefined') {
-    const { hostname } = window.location;
-    if (hostname === 'localhost' || hostname === '127.0.0.1') {
-      console.log('🔧 API: Using localhost:5000 for local development');
-      return 'http://localhost:5000';
-    }
-  }
-
-  // Check for explicit environment variable
   const rawEnvUrl = import.meta.env.VITE_API_BASE_URL?.toString().trim();
   if (rawEnvUrl) {
-    console.log(`🔧 API: Using env VITE_API_BASE_URL: ${rawEnvUrl}`);
     return rawEnvUrl.replace(/\/+$/, '');
   }
 
-  // Fallback for production based on window location
   if (typeof window !== 'undefined') {
     const { protocol, hostname, port } = window.location;
     const fallbackPort = import.meta.env.VITE_API_FALLBACK_PORT?.toString().trim();
 
-    let portToUse = fallbackPort || port || '';
+    let portToUse = fallbackPort || '';
+
+    if (!portToUse) {
+      if (hostname === 'localhost' || hostname === '127.0.0.1') {
+        portToUse = '5000';
+      } else if (port) {
+        portToUse = port;
+      }
+    }
+
     const portSegment = portToUse ? `:${portToUse}` : '';
-    const url = `${protocol}//${hostname}${portSegment}`;
-    console.log(`🔧 API: Using fallback URL: ${url}`);
-    return url;
+    return `${protocol}//${hostname}${portSegment}`;
   }
 
-  console.log('🔧 API: Using default localhost:5000');
   return 'http://localhost:5000';
 };
 
