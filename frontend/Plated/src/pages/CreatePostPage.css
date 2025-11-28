@@ -1,0 +1,214 @@
+/* frontend/Plated/src/pages/CreatePostPage.css */
+.create-post-page {
+  min-height: 100vh;
+  background: #fafafa;
+}
+
+.create-post-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  background: white;
+  border-bottom: 1px solid #dbdbdb;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.create-post-header h1 {
+  font-size: 1.2rem;
+  font-weight: 600;
+}
+
+.back-btn, .submit-btn {
+  background: none;
+  border: none;
+  font-size: 1rem;
+  cursor: pointer;
+  padding: 0.5rem 1rem;
+}
+
+.submit-btn {
+  color: #0095f6;
+  font-weight: 600;
+}
+
+.submit-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.create-post-content {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+}
+
+.error-message {
+  background: #ffebee;
+  color: #c62828;
+  padding: 1rem;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+}
+
+.post-type-toggle {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.post-type-toggle button {
+  flex: 1;
+  padding: 0.75rem;
+  border: 2px solid #dbdbdb;
+  background: white;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.post-type-toggle button.active {
+  border-color: #0095f6;
+  background: #e3f2fd;
+  color: #0095f6;
+}
+
+.image-upload-section {
+  margin-bottom: 2rem;
+}
+
+.image-upload-label {
+  display: block;
+  cursor: pointer;
+}
+
+.image-preview {
+  width: 100%;
+  max-height: 400px;
+  object-fit: cover;
+  border-radius: 8px;
+}
+
+.image-placeholder {
+  width: 100%;
+  height: 300px;
+  border: 2px dashed #dbdbdb;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #8e8e8e;
+  font-size: 1.1rem;
+}
+
+.form-group {
+  margin-bottom: 1.5rem;
+}
+
+.form-group label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: #262626;
+}
+
+.form-group input,
+.form-group textarea,
+.form-group select {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #dbdbdb;
+  border-radius: 6px;
+  font-size: 1rem;
+  font-family: inherit;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 1rem;
+}
+
+.ingredient-row,
+.instruction-row {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+  align-items: flex-start;
+}
+
+.ingredient-row input {
+  flex: 1;
+}
+
+.ingredient-row input:first-child {
+  flex: 0.5;
+}
+
+.instruction-number {
+  font-weight: 600;
+  padding-top: 0.75rem;
+  min-width: 30px;
+}
+
+.instruction-row textarea {
+  flex: 1;
+}
+
+.add-btn {
+  padding: 0.5rem 1rem;
+  background: #f0f0f0;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  margin-top: 0.5rem;
+}
+
+.tags-input {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.tags-input input {
+  flex: 1;
+}
+
+.tags-input button {
+  padding: 0.5rem 1rem;
+  background: #0095f6;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.tags-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem 0.8rem;
+  background: #e3f2fd;
+  color: #0095f6;
+  border-radius: 20px;
+  font-size: 0.9rem;
+}
+
+.tag button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1.2rem;
+  line-height: 1;
+  color: #0095f6;
+}
