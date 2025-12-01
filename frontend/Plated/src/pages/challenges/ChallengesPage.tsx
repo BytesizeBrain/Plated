@@ -250,7 +250,7 @@ function ChallengesPage() {
               showDetails={false}
             />
             <div className="rewards-row">
-              <CoinWallet coins={rewards.coins} onClick={() => navigate('/market')} />
+              <CoinWallet coins={rewards.coins} />
               <StreakFlame
                 currentDays={rewards.streak.currentDays}
                 freezeTokens={rewards.streak.freezeTokens}

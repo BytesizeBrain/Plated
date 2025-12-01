@@ -1,0 +1,69 @@
+# Git Attributes for Plated Project
+# Ensures consistent line endings across Windows/Mac/Linux development environments
+
+# ============================================================================
+# AUTO DETECTION
+# ============================================================================
+# Auto detect text files and normalize line endings to LF on checkin
+* text=auto
+
+# ============================================================================
+# SHELL SCRIPTS - CRITICAL: Must always use LF (Unix line endings)
+# ============================================================================
+# deploy.sh MUST have LF endings or it will fail on Linux production servers
+*.sh text eol=lf
+
+# ============================================================================
+# PYTHON FILES - Use LF for consistency
+# ============================================================================
+*.py text eol=lf
+
+# ============================================================================
+# WINDOWS SCRIPTS - Keep CRLF
+# ============================================================================
+*.bat text eol=crlf
+*.ps1 text eol=crlf
+
+# ============================================================================
+# WEB FILES - Use LF
+# ============================================================================
+*.html text eol=lf
+*.css text eol=lf
+*.scss text eol=lf
+*.js text eol=lf
+*.jsx text eol=lf
+*.ts text eol=lf
+*.tsx text eol=lf
+*.json text eol=lf
+*.md text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+
+# ============================================================================
+# CONFIGURATION FILES - Use LF
+# ============================================================================
+*.conf text eol=lf
+*.config text eol=lf
+*.ini text eol=lf
+.gitignore text eol=lf
+.gitattributes text eol=lf
+.editorconfig text eol=lf
+Dockerfile text eol=lf
+*.env.example text eol=lf
+
+# ============================================================================
+# BINARY FILES - Do not modify
+# ============================================================================
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.svg binary
+*.eot binary
+*.ttf binary
+*.woff binary
+*.woff2 binary
+*.db binary
+*.sqlite binary
+*.pyc binary

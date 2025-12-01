@@ -1,0 +1,95 @@
+# EditorConfig for Plated Project
+# Ensures consistent coding styles across different editors and IDEs
+# https://editorconfig.org
+
+root = true
+
+# ============================================================================
+# DEFAULT SETTINGS FOR ALL FILES
+# ============================================================================
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+indent_style = space
+indent_size = 2
+
+# ============================================================================
+# SHELL SCRIPTS - CRITICAL: Must use LF
+# ============================================================================
+[*.sh]
+end_of_line = lf
+indent_style = space
+indent_size = 2
+
+# ============================================================================
+# PYTHON FILES
+# ============================================================================
+[*.py]
+end_of_line = lf
+indent_style = space
+indent_size = 4
+max_line_length = 100
+
+# ============================================================================
+# WINDOWS SCRIPTS - Use CRLF
+# ============================================================================
+[*.{bat,ps1}]
+end_of_line = crlf
+indent_style = space
+indent_size = 2
+
+# ============================================================================
+# JAVASCRIPT/TYPESCRIPT
+# ============================================================================
+[*.{js,jsx,ts,tsx}]
+end_of_line = lf
+indent_style = space
+indent_size = 2
+
+# ============================================================================
+# HTML/CSS/SCSS
+# ============================================================================
+[*.{html,css,scss}]
+end_of_line = lf
+indent_style = space
+indent_size = 2
+
+# ============================================================================
+# JSON/YAML
+# ============================================================================
+[*.{json,yml,yaml}]
+end_of_line = lf
+indent_style = space
+indent_size = 2
+
+# ============================================================================
+# MARKDOWN - Preserve trailing whitespace (for line breaks)
+# ============================================================================
+[*.md]
+end_of_line = lf
+trim_trailing_whitespace = false
+indent_style = space
+indent_size = 2
+
+# ============================================================================
+# CONFIGURATION FILES
+# ============================================================================
+[{.gitignore,.gitattributes,.editorconfig}]
+end_of_line = lf
+
+[Dockerfile]
+end_of_line = lf
+
+[*.{conf,config,ini}]
+end_of_line = lf
+
+# ============================================================================
+# MAKEFILES - Must use tabs
+# ============================================================================
+[Makefile]
+indent_style = tab
+
+[*.mk]
+indent_style = tab
