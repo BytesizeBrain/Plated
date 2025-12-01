@@ -1,6 +1,7 @@
 // frontend/Plated/src/pages/CreatePostPage.tsx
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { uploadPostImage, createPost } from '../utils/api';
 import './CreatePostPage.css';
 
 type PostType = 'simple' | 'recipe';
@@ -120,20 +121,7 @@ function CreatePostPage() {
 
     try {
       // 1. Upload image
-      const formData = new FormData();
-      formData.append('image', imageFile);
-
-      const uploadRes = await fetch('http://localhost:5000/api/posts/upload-image', {
-        method: 'POST',
-        body: formData
-      });
-
-      if (!uploadRes.ok) {
-        throw new Error('Image upload failed');
-      }
-
-      const uploadData = await uploadRes.json();
-      const imageUrl = uploadData.image_url;
+      const imageUrl = await uploadPostImage(imageFile);
 
       // 2. Create post
       const postData: any = {
@@ -157,17 +145,7 @@ function CreatePostPage() {
         postData.recipe_data = recipeData;
       }
 
-      const createRes = await fetch('http://localhost:5000/api/posts/create', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(postData)
-      });
-
-      if (!createRes.ok) {
-        throw new Error('Failed to create post');
-      }
+      await createPost(postData);
 
       // Success - navigate to feed
       navigate('/feed');

@@ -227,3 +227,82 @@ def get_challenges():
         return jsonify({"challenges": result.data or []}), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+
+@gamification_bp.route("/rewards/summary", methods=["GET"])
+def get_rewards_summary():
+    """Get current user's rewards summary (XP, coins, level, streak)
+    
+    Returns a summary of gamification data for the authenticated user.
+    Falls back to default values if no gamification data exists.
+    """
+    # TODO: Get user_id from JWT token in production
+    # For now, return default/demo data
+    user_id = request.args.get("user_id")
+    
+    try:
+        default_summary = {
+            "xp": 0,
+            "level": 1,
+            "nextLevelXp": 100,
+            "coins": 0,
+            "streak": {
+                "currentDays": 0,
+                "freezeTokens": 0,
+                "nextCutoff": None
+            },
+            "badges": []
+        }
+        
+        if not user_id:
+            # Return default data if no user specified
+            return jsonify(default_summary), 200
+            
+        # Get user gamification stats
+        gamification_res = supabase.table("user_gamification")\
+            .select("*")\
+            .eq("user_id", user_id)\
+            .execute()
+        
+        if not gamification_res.data:
+            return jsonify(default_summary), 200
+            
+        stats = gamification_res.data[0]
+        
+        # Get user badges
+        badges_res = supabase.table("user_badges")\
+            .select("badge_id, earned_at")\
+            .eq("user_id", user_id)\
+            .execute()
+        
+        badge_ids = [b['badge_id'] for b in (badges_res.data or [])]
+        badges = []
+        
+        if badge_ids:
+            badges_details = supabase.table("badges")\
+                .select("*")\
+                .in_("id", badge_ids)\
+                .execute()
+            badges = badges_details.data or []
+        
+        # Calculate next level XP (simple: 100 XP per level)
+        current_level = stats.get('level', 1)
+        next_level_xp = current_level * 100
+        
+        summary = {
+            "xp": stats.get('xp', 0),
+            "level": current_level,
+            "nextLevelXp": next_level_xp,
+            "coins": stats.get('coins', 0),
+            "streak": {
+                "currentDays": stats.get('current_streak', 0),
+                "freezeTokens": stats.get('freeze_tokens', 0),
+                "nextCutoff": stats.get('last_activity_date')
+            },
+            "badges": badges
+        }
+        
+        return jsonify(summary), 200
+        
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500

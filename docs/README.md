@@ -13,13 +13,14 @@ Welcome to the Plated documentation! This folder contains all technical document
 ### 🧪 [testing/](testing/)
 **Local testing and development guides**
 - [`README_LOCAL_TESTING.md`](testing/README_LOCAL_TESTING.md) - Main local testing guide ⭐ **START HERE**
-- [`LOCAL_TESTING_QUICK_START.md`](testing/LOCAL_TESTING_QUICK_START.md) - Quick 3-step testing guide
-- [`START_LOCAL_TESTING.md`](testing/START_LOCAL_TESTING.md) - Comprehensive testing documentation
 
 ### 🔧 [technical/](technical/)
 **Technical deep dives and architecture**
 - [`MOCK_AUTH_FLOW.md`](technical/MOCK_AUTH_FLOW.md) - Mock authentication system explained
-- [`CHANGES_SUMMARY.md`](technical/CHANGES_SUMMARY.md) - Summary of recent changes and fixes
+
+### 🚀 [deployment/](deployment/)
+**Deployment rules and production guidelines**
+- [`DEPLOYMENT_CRITICAL_RULES.md`](deployment/DEPLOYMENT_CRITICAL_RULES.md) - Mandatory deployment rules
 
 ### 📋 [plans/](plans/)
 **Project plans and roadmaps**
@@ -44,11 +45,11 @@ Welcome to the Plated documentation! This folder contains all technical document
 **...understand how authentication works**
 → Read [`technical/MOCK_AUTH_FLOW.md`](technical/MOCK_AUTH_FLOW.md)
 
+**...deploy to production**
+→ Read [`deployment/DEPLOYMENT_CRITICAL_RULES.md`](deployment/DEPLOYMENT_CRITICAL_RULES.md)
+
 **...see what's been implemented**
 → Read [`plans/2025-01-24-production-ready-plated.md`](plans/2025-01-24-production-ready-plated.md)
-
-**...understand recent changes**
-→ Read [`technical/CHANGES_SUMMARY.md`](technical/CHANGES_SUMMARY.md)
 
 ---
 
@@ -59,10 +60,9 @@ Welcome to the Plated documentation! This folder contains all technical document
 2. [`testing/README_LOCAL_TESTING.md`](testing/README_LOCAL_TESTING.md) - Learn to test locally
 3. [`plans/2025-01-24-production-ready-plated.md`](plans/2025-01-24-production-ready-plated.md) - Understand the roadmap
 
-### For Testing/QA:
-1. [`testing/LOCAL_TESTING_QUICK_START.md`](testing/LOCAL_TESTING_QUICK_START.md) - Quick setup
-2. [`testing/START_LOCAL_TESTING.md`](testing/START_LOCAL_TESTING.md) - Detailed testing guide
-3. [`technical/MOCK_AUTH_FLOW.md`](technical/MOCK_AUTH_FLOW.md) - Authentication details
+### For Deploying to Production:
+1. [`deployment/DEPLOYMENT_CRITICAL_RULES.md`](deployment/DEPLOYMENT_CRITICAL_RULES.md) - Deployment rules
+2. Root [`DEPLOYMENT_RULES_QUICKREF.md`](../DEPLOYMENT_RULES_QUICKREF.md) - Quick checklist
 
 ### For Understanding Architecture:
 1. [`technical/MOCK_AUTH_FLOW.md`](technical/MOCK_AUTH_FLOW.md) - Authentication system
@@ -84,15 +84,18 @@ Welcome to the Plated documentation! This folder contains all technical document
 | Document | Description | When to Use |
 |----------|-------------|-------------|
 | **README_LOCAL_TESTING.md** | Main testing guide with quick start, common issues, and feature verification | Primary testing reference ⭐ |
-| **LOCAL_TESTING_QUICK_START.md** | Condensed 3-step guide for rapid testing setup | Quick reference for experienced users |
-| **START_LOCAL_TESTING.md** | Comprehensive testing guide with detailed troubleshooting and environment setup | Deep dive into testing procedures |
 
 ### Technical Documentation
 
 | Document | Description | When to Use |
 |----------|-------------|-------------|
 | **MOCK_AUTH_FLOW.md** | Complete technical explanation of the mock authentication system with diagrams and code examples | Understanding or debugging authentication |
-| **CHANGES_SUMMARY.md** | Summary of recent changes, what was fixed, and why | Catching up on recent work |
+
+### Deployment Documentation
+
+| Document | Description | When to Use |
+|----------|-------------|-------------|
+| **DEPLOYMENT_CRITICAL_RULES.md** | Mandatory rules and checklists for production deployment | Before every deployment |
 
 ### Planning Documentation
 
@@ -117,10 +120,9 @@ Welcome to the Plated documentation! This folder contains all technical document
 1. **Can't find what you're looking for?** Check the Quick Navigation section above
 2. **Setting up for first time?** Start with [`setup/QUICK_START_GUIDE.md`](setup/QUICK_START_GUIDE.md)
 3. **Testing not working?** See [`testing/README_LOCAL_TESTING.md`](testing/README_LOCAL_TESTING.md)
-4. **Understanding the system?** Read [`technical/MOCK_AUTH_FLOW.md`](technical/MOCK_AUTH_FLOW.md)
+4. **Deploying to production?** Read [`deployment/DEPLOYMENT_CRITICAL_RULES.md`](deployment/DEPLOYMENT_CRITICAL_RULES.md)
 
 ---
 
-**Last Updated:** November 26, 2025  
+**Last Updated:** December 1, 2025  
 **Maintained by:** Plated Development Team
-

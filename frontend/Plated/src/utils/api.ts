@@ -443,8 +443,16 @@ export const getOrCreateConversation = async (userId: string): Promise<Conversat
 export const getChallenges = async (): Promise<Challenge[]> => {
   return withFallback(
     async () => {
-      const response = await api.get<Challenge[]>('/api/challenges');
-      return response.data;
+      const response = await api.get<{ challenges: Challenge[] } | Challenge[]>('/api/challenges');
+      // Handle both formats: { challenges: [...] } or just [...]
+      const data = response.data;
+      if (Array.isArray(data)) {
+        return data;
+      }
+      if (data && typeof data === 'object' && 'challenges' in data) {
+        return data.challenges;
+      }
+      return [];
     },
     mockChallenges,
     'Challenges'
@@ -534,6 +542,51 @@ export const saveCookSession = async (sessionData: any): Promise<void> => {
  */
 export const submitCookSession = async (sessionId: string, proofData: any): Promise<void> => {
   await api.post(`/api/sessions/${sessionId}/submit`, proofData);
+};
+
+// ===== POSTS CREATION API =====
+
+/**
+ * Upload image for post creation
+ * Returns the public URL of the uploaded image
+ * If backend is unavailable, this will fail (no mock fallback for write operations)
+ */
+export const uploadPostImage = async (imageFile: File): Promise<string> => {
+  try {
+    const formData = new FormData();
+    formData.append('image', imageFile);
+
+    const response = await api.post<{ image_url: string }>('/api/posts/upload-image', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    });
+
+    return response.data.image_url;
+  } catch (error) {
+    if (!(error as any).response) {
+      throw new Error('Unable to connect to server. Please check your connection.');
+    }
+    throw new Error('Failed to upload image. Please try again.');
+  }
+};
+
+/**
+ * Create a new post (simple or recipe)
+ * If backend is unavailable, this will fail (no mock fallback for write operations)
+ */
+export const createPost = async (postData: {
+  post_type: 'simple' | 'recipe';
+  image_url: string;
+  caption: string;
+  recipe_data?: any;
+}): Promise<void> => {
+  try {
+    await api.post('/api/posts/create', postData);
+  } catch (error) {
+    if (!(error as any).response) {
+      throw new Error('Unable to connect to server. Please check your connection.');
+    }
+    throw new Error('Failed to create post. Please try again.');
+  }
 };
 
 export default api;
