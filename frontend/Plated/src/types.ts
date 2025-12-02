@@ -42,6 +42,19 @@ export interface ApiError {
 }
 
 // Feed Types
+export interface RecipeData {
+  title?: string;
+  prep_time?: number;
+  cook_time?: number;
+  cooking_time?: number; // legacy field name
+  servings?: number;
+  difficulty?: 'easy' | 'medium' | 'hard' | string;
+  cuisine?: string;
+  ingredients?: (string | { item?: string; name?: string; amount?: string; unit?: string })[];
+  instructions?: (string | { step?: string; text?: string })[];
+  tags?: string[];
+}
+
 export interface FeedPost {
   id: string;
   user_id: string;
@@ -54,13 +67,7 @@ export interface FeedPost {
   description?: string;
   media_url?: string;
   media_type?: 'image' | 'video';
-  recipe_data?: {
-    cooking_time?: number;
-    difficulty?: 'easy' | 'medium' | 'hard';
-    servings?: number;
-    ingredients?: string[];
-    instructions?: string[];
-  };
+  recipe_data?: RecipeData;
   likes_count: number;
   comments_count: number;
   views_count: number;

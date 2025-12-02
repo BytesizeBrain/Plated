@@ -262,10 +262,11 @@ export const getFeedPosts = async (
           display_name: post.user?.username || 'Unknown User',
           profile_pic: post.user?.profile_pic || '',
         },
-        title: post.caption || 'Untitled Post',
+        title: post.recipe_data?.title || post.caption || 'Untitled Post',
         description: post.caption || '',
         media_url: post.image_url,
         media_type: 'image' as const,
+        recipe_data: post.recipe_data,
         likes_count: post.engagement?.likes_count || 0,
         comments_count: post.engagement?.comments_count || 0,
         views_count: post.views_count || 0,
@@ -355,9 +356,12 @@ export const searchPosts = async (
       const filtered = mockFeedPosts.filter(post =>
         post.title.toLowerCase().includes(searchQuery) ||
         post.description?.toLowerCase().includes(searchQuery) ||
-        post.recipe_data?.ingredients?.some((ingredient: string) =>
-          ingredient.toLowerCase().includes(searchQuery)
-        ) ||
+        post.recipe_data?.ingredients?.some((ingredient) => {
+          const ingredientText = typeof ingredient === 'string' 
+            ? ingredient 
+            : ingredient.item || ingredient.name || '';
+          return ingredientText.toLowerCase().includes(searchQuery);
+        }) ||
         post.user.display_name.toLowerCase().includes(searchQuery) ||
         post.user.username.toLowerCase().includes(searchQuery)
       );
