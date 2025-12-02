@@ -228,7 +228,7 @@ export const checkUsername = async (username: string): Promise<boolean> => {
  */
 export const getFeedPosts = async (
   page: number = 1,
-  filter?: FeedFilter
+  _filter?: FeedFilter
 ): Promise<{ posts: FeedPost[]; has_more: boolean }> => {
   const perPage = 10;
 
@@ -254,25 +254,73 @@ export const getFeedPosts = async (
 
       // Transform backend response to match frontend FeedPost structure
       const backendPosts = resp.data.feed ?? [];
-      const posts: FeedPost[] = backendPosts.map((post: any) => ({
-        id: post.id,
-        user_id: post.user?.id || '',
-        user: {
-          username: post.user?.username || 'unknown',
-          display_name: post.user?.username || 'Unknown User',
-          profile_pic: post.user?.profile_pic || '',
-        },
-        title: post.caption || 'Untitled Post',
-        description: post.caption || '',
-        media_url: post.image_url,
-        media_type: 'image' as const,
-        likes_count: post.engagement?.likes_count || 0,
-        comments_count: post.engagement?.comments_count || 0,
-        views_count: post.views_count || 0,
-        is_liked: post.engagement?.is_liked || false,
-        is_saved: post.engagement?.is_saved || false,
-        created_at: post.created_at,
-      }));
+      const posts: FeedPost[] = backendPosts.map((post: any) => {
+        // Transform recipe_data if it exists
+        let recipeData = undefined;
+        if (post.recipe_data && typeof post.recipe_data === 'object') {
+          // Transform ingredients from objects to strings, filter out empty ones
+          let ingredients: string[] | undefined = undefined;
+          if (Array.isArray(post.recipe_data.ingredients) && post.recipe_data.ingredients.length > 0) {
+            ingredients = post.recipe_data.ingredients
+              .map((ing: any) => {
+                if (typeof ing === 'string') return ing.trim();
+                // If it's an object with item, amount, unit
+                if (ing && typeof ing === 'object' && ing.item) {
+                  const parts = [];
+                  if (ing.amount) parts.push(String(ing.amount).trim());
+                  if (ing.unit) parts.push(String(ing.unit).trim());
+                  parts.push(String(ing.item).trim());
+                  return parts.filter(p => p).join(' ');
+                }
+                return String(ing).trim();
+              })
+              .filter((ing: string) => ing.length > 0);
+          }
+
+          // Filter out empty instructions
+          let instructions: string[] | undefined = undefined;
+          if (Array.isArray(post.recipe_data.instructions) && post.recipe_data.instructions.length > 0) {
+            instructions = post.recipe_data.instructions
+              .map((inst: any) => String(inst).trim())
+              .filter((inst: string) => inst.length > 0);
+          }
+
+          // Only create recipeData if we have meaningful data
+          if (post.recipe_data.title || ingredients || instructions) {
+            recipeData = {
+              title: post.recipe_data.title,
+              cooking_time: post.recipe_data.prep_time && post.recipe_data.cook_time
+                ? post.recipe_data.prep_time + post.recipe_data.cook_time
+                : post.recipe_data.cook_time || post.recipe_data.prep_time,
+              difficulty: post.recipe_data.difficulty,
+              servings: post.recipe_data.servings,
+              ingredients: ingredients && ingredients.length > 0 ? ingredients : undefined,
+              instructions: instructions && instructions.length > 0 ? instructions : undefined,
+            };
+          }
+        }
+
+        return {
+          id: post.id,
+          user_id: post.user?.id || '',
+          user: {
+            username: post.user?.username || 'unknown',
+            display_name: post.user?.username || 'Unknown User',
+            profile_pic: post.user?.profile_pic || '',
+          },
+          title: post.recipe_data?.title || post.caption || 'Untitled Post',
+          description: post.caption || '',
+          media_url: post.image_url,
+          media_type: 'image' as const,
+          recipe_data: recipeData,
+          likes_count: post.engagement?.likes_count || 0,
+          comments_count: post.engagement?.comments_count || 0,
+          views_count: post.views_count || 0,
+          is_liked: post.engagement?.is_liked || false,
+          is_saved: post.engagement?.is_saved || false,
+          created_at: post.created_at,
+        };
+      });
 
       return {
         posts,
@@ -323,26 +371,73 @@ export const searchPosts = async (
 
       // Transform backend response to match frontend FeedPost structure
       const backendPosts = resp.data.results ?? [];
-      const posts: FeedPost[] = backendPosts.map((post: any) => ({
-        id: post.id,
-        user_id: post.user?.id || '',
-        user: {
-          username: post.user?.username || 'unknown',
-          display_name: post.user?.username || 'Unknown User',
-          profile_pic: post.user?.profile_pic || '',
-        },
-        title: post.recipe_data?.title || post.caption || 'Untitled Post',
-        description: post.caption || '',
-        media_url: post.image_url,
-        media_type: 'image' as const,
-        recipe_data: post.recipe_data,
-        likes_count: post.engagement?.likes_count || 0,
-        comments_count: post.engagement?.comments_count || 0,
-        views_count: post.views_count || 0,
-        is_liked: post.engagement?.is_liked || false,
-        is_saved: post.engagement?.is_saved || false,
-        created_at: post.created_at,
-      }));
+      const posts: FeedPost[] = backendPosts.map((post: any) => {
+        // Transform recipe_data if it exists
+        let recipeData = undefined;
+        if (post.recipe_data && typeof post.recipe_data === 'object') {
+          // Transform ingredients from objects to strings, filter out empty ones
+          let ingredients: string[] | undefined = undefined;
+          if (Array.isArray(post.recipe_data.ingredients) && post.recipe_data.ingredients.length > 0) {
+            ingredients = post.recipe_data.ingredients
+              .map((ing: any) => {
+                if (typeof ing === 'string') return ing.trim();
+                // If it's an object with item, amount, unit
+                if (ing && typeof ing === 'object' && ing.item) {
+                  const parts = [];
+                  if (ing.amount) parts.push(String(ing.amount).trim());
+                  if (ing.unit) parts.push(String(ing.unit).trim());
+                  parts.push(String(ing.item).trim());
+                  return parts.filter(p => p).join(' ');
+                }
+                return String(ing).trim();
+              })
+              .filter((ing: string) => ing.length > 0);
+          }
+
+          // Filter out empty instructions
+          let instructions: string[] | undefined = undefined;
+          if (Array.isArray(post.recipe_data.instructions) && post.recipe_data.instructions.length > 0) {
+            instructions = post.recipe_data.instructions
+              .map((inst: any) => String(inst).trim())
+              .filter((inst: string) => inst.length > 0);
+          }
+
+          // Only create recipeData if we have meaningful data
+          if (post.recipe_data.title || ingredients || instructions) {
+            recipeData = {
+              title: post.recipe_data.title,
+              cooking_time: post.recipe_data.prep_time && post.recipe_data.cook_time
+                ? post.recipe_data.prep_time + post.recipe_data.cook_time
+                : post.recipe_data.cook_time || post.recipe_data.prep_time,
+              difficulty: post.recipe_data.difficulty,
+              servings: post.recipe_data.servings,
+              ingredients: ingredients && ingredients.length > 0 ? ingredients : undefined,
+              instructions: instructions && instructions.length > 0 ? instructions : undefined,
+            };
+          }
+        }
+
+        return {
+          id: post.id,
+          user_id: post.user?.id || '',
+          user: {
+            username: post.user?.username || 'unknown',
+            display_name: post.user?.username || 'Unknown User',
+            profile_pic: post.user?.profile_pic || '',
+          },
+          title: post.recipe_data?.title || post.caption || 'Untitled Post',
+          description: post.caption || '',
+          media_url: post.image_url,
+          media_type: 'image' as const,
+          recipe_data: recipeData,
+          likes_count: post.engagement?.likes_count || 0,
+          comments_count: post.engagement?.comments_count || 0,
+          views_count: post.views_count || 0,
+          is_liked: post.engagement?.is_liked || false,
+          is_saved: post.engagement?.is_saved || false,
+          created_at: post.created_at,
+        };
+      });
 
       return {
         posts,

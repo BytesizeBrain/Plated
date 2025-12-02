@@ -56,6 +56,8 @@ export interface FeedPost {
   media_type?: 'image' | 'video';
   recipe_data?: {
     cooking_time?: number;
+    prep_time?: number;  // May come from backend before transformation
+    cook_time?: number;  // May come from backend before transformation
     difficulty?: 'easy' | 'medium' | 'hard';
     servings?: number;
     ingredients?: string[];
