@@ -27,23 +27,6 @@ export function createPostJson(payload: {
   });
 }
 
-// POST /create_post  (multipart form-data with image)
-export async function createPostWithImage(args: {
-  file: File;
-  userId: string;
-  caption?: string;
-}) {
-  const form = new FormData();
-  form.append("image", args.file);
-  form.append("user_id", args.userId);
-  if (args.caption) form.append("caption", args.caption);
-
-  return apiRequest("/create_post", {
-    method: "POST",
-    body: form,
-  });
-}
-
 // GET /posts/user/:user_id
 export function getUserPosts(userId: string) {
   return apiRequest(`/posts/user/${encodeURIComponent(userId)}`);
