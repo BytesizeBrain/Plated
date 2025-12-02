@@ -4,7 +4,7 @@ from extensions import db
 followers = db.Table(
     'followers',
     db.Column('follower_id', db.Uuid(), db.ForeignKey('user.id'), primary_key=True),
-    db.Column('followed_id', db.Uuid(), db.ForeignKey('user.id'), primary_key=True)
+    db.Column('following_id', db.Uuid(), db.ForeignKey('user.id'), primary_key=True)
 )
 
 follow_requests = db.Table(
@@ -27,7 +27,7 @@ class User(db.Model):
     followers = db.relationship(
         'User',
         secondary=followers,
-        primaryjoin=(followers.c.followed_id == id),
+        primaryjoin=(followers.c.following_id == id),
         secondaryjoin=(followers.c.follower_id == id),
         backref=db.backref('following', lazy='dynamic'),
         lazy='dynamic'

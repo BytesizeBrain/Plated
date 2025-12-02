@@ -116,10 +116,10 @@ CREATE INDEX IF NOT EXISTS idx_post_views_user_id ON post_views(user_id);
 -- Followers table (many-to-many relationship)
 CREATE TABLE IF NOT EXISTS followers (
   follower_id UUID NOT NULL,
-  followed_id UUID NOT NULL,
+  following_id UUID NOT NULL,
   created_at TIMESTAMPTZ DEFAULT NOW(),
-  PRIMARY KEY (follower_id, followed_id),
-  CHECK (follower_id != followed_id)
+  PRIMARY KEY (follower_id, following_id),
+  CHECK (follower_id != following_id)
 );
 
 -- Create indexes only if columns exist (handles case where table exists with different structure)

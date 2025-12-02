@@ -37,7 +37,8 @@ app.config['GOOGLE_CLIENT_ID'] = google_client_id
 app.config['GOOGLE_CLIENT_SECRET'] = google_client_secret
 
 # Configuring SQLAlchemy ORM to use database
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///users.db'
+database_url = os.getenv('DATABASE_URL', 'sqlite:///users.db')
+app.config['SQLALCHEMY_DATABASE_URI'] = database_url
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 # Initialize database

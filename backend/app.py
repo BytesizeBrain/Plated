@@ -53,5 +53,9 @@ def index():
 
 if __name__ == '__main__':
     with app.app_context():
-        db.create_all()  # for SQLAlchemy user tables (local dev)
+        # Only create tables for local SQLite development
+        # Supabase/PostgreSQL tables are managed separately
+        database_url = os.getenv('DATABASE_URL', '')
+        if not database_url.startswith('postgresql'):
+            db.create_all()
     app.run(debug=True, host='0.0.0.0')

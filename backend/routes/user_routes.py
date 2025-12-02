@@ -353,7 +353,7 @@ def accept_follow_request():
     if not exists:
         return jsonify({'error': 'No such follow request'}), 404
     # Add to followers
-    db.session.execute(followers.insert().values(follower_id=requester.id, followed_id=user.id))
+    db.session.execute(followers.insert().values(follower_id=requester.id, following_id=user.id))
     # Remove request
     db.session.execute(
         follow_requests.delete().where(

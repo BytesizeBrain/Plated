@@ -331,17 +331,14 @@ db.session.commit()
 
 The Supabase database has these differences from planning docs:
 
-1. **`followers` table:**
-   - Uses `following_id` (NOT `followed_id`)
-
-2. **`comments` table:**
+1. **`comments` table:**
    - Uses `text` column (NOT `content`)
 
-3. **`posts` table:**
+2. **`posts` table:**
    - `image_url` is NULLABLE
    - `user_id` uses `gen_random_uuid()` default
 
-4. **`user_gamification` table:**
+3. **`user_gamification` table:**
    - Missing `updated_at` column
    - Only has `created_at`
 
