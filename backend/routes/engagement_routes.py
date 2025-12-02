@@ -149,7 +149,7 @@ def get_post_comments(post_id):
         user_ids = list(set(c['user_id'] for c in comments))
         if user_ids:
             users_result = supabase.table("user")\
-                .select("id, username, profile_pic")\
+                .select("id, username, display_name, profile_pic")\
                 .in_("id", user_ids)\
                 .execute()
 
@@ -160,6 +160,7 @@ def get_post_comments(post_id):
                 user = users_map.get(comment['user_id'], {})
                 comment['user'] = {
                     'username': user.get('username', 'Unknown'),
+                    'display_name': user.get('display_name') or user.get('username', 'Unknown'),
                     'profile_pic': user.get('profile_pic')
                 }
                 # Map DB 'text' column to API 'content' key
