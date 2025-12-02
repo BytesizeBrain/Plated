@@ -382,6 +382,7 @@ function Profile() {
                         {profilePicError}
                       </div>
                     )}
+                  </div>
 
                   <div className="form-actions">
                     <button 
