@@ -2,6 +2,7 @@
   min-height: 100vh;
   background: #0f0f23;
   color: #ffffff;
+  overflow-x: hidden;
 }
 
 /* Header */
