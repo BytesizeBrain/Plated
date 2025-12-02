@@ -1,7 +1,6 @@
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { isAuthenticated, setToken } from '../utils/auth';
-import { mockCurrentUser } from '../data/mockData';
 import { API_BASE_URL } from '../utils/api';
 
 function Login() {
