@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { isAuthenticated } from '../utils/auth';
-import { mockFeedPosts } from '../data/mockData';
+import { searchPosts } from '../utils/api';
+import type { FeedPost } from '../types';
 import PostCard from '../components/feed/PostCard';
 import './ExplorePage.css';
 
@@ -9,8 +10,9 @@ function ExplorePage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [searchQuery, setSearchQuery] = useState('');
-  const [filteredPosts, setFilteredPosts] = useState(mockFeedPosts);
+  const [filteredPosts, setFilteredPosts] = useState<FeedPost[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [totalResults, setTotalResults] = useState(0);
 
   // Auth check
   useEffect(() => {
@@ -26,27 +28,25 @@ function ExplorePage() {
     if (query) {
       performSearch(query);
     } else {
-      setFilteredPosts(mockFeedPosts);
+      setFilteredPosts([]);
+      setTotalResults(0);
     }
   }, [searchParams]);
 
   const performSearch = async (query: string) => {
     setIsLoading(true);
     
-    // Simulate API delay
-    setTimeout(() => {
-      const filtered = mockFeedPosts.filter(post => 
-        post.title.toLowerCase().includes(query.toLowerCase()) ||
-        post.description?.toLowerCase().includes(query.toLowerCase()) ||
-        post.recipe_data?.ingredients?.some(ingredient => 
-          ingredient.toLowerCase().includes(query.toLowerCase())
-        ) ||
-        post.user.display_name.toLowerCase().includes(query.toLowerCase()) ||
-        post.user.username.toLowerCase().includes(query.toLowerCase())
-      );
-      setFilteredPosts(filtered);
+    try {
+      const result = await searchPosts(query, 1, 50);
+      setFilteredPosts(result.posts);
+      setTotalResults(result.total);
+    } catch (error) {
+      console.error('Search failed:', error);
+      setFilteredPosts([]);
+      setTotalResults(0);
+    } finally {
       setIsLoading(false);
-    }, 500);
+    }
   };
 
   const handleSearch = (e: React.FormEvent) => {
@@ -129,7 +129,7 @@ function ExplorePage() {
         {searchQuery && (
           <div className="search-results-header">
             <h2>
-              {isLoading ? 'Searching...' : `${filteredPosts.length} results for "${searchQuery}"`}
+              {isLoading ? 'Searching...' : `${totalResults} results for "${searchQuery}"`}
             </h2>
           </div>
         )}

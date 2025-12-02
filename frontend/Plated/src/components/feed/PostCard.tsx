@@ -85,7 +85,7 @@ function PostCard({ post }: PostCardProps) {
       {post.recipe_data && (
         <div className="post-recipe-info">
           <div className="recipe-meta">
-            {post.recipe_data.cooking_time && (
+            {post.recipe_data.prep_time && (
               <span className="recipe-tag">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -99,16 +99,66 @@ function PostCard({ post }: PostCardProps) {
                   <circle cx="12" cy="12" r="10"></circle>
                   <polyline points="12 6 12 12 16 14"></polyline>
                 </svg>
-                {post.recipe_data.cooking_time} min
+                Prep: {post.recipe_data.prep_time} min
+              </span>
+            )}
+            {(post.recipe_data.cook_time || post.recipe_data.cooking_time) && (
+              <span className="recipe-tag">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                >
+                  <path d="M12 2v4m0 12v4M4.93 4.93l2.83 2.83m8.48 8.48l2.83 2.83M2 12h4m12 0h4M4.93 19.07l2.83-2.83m8.48-8.48l2.83-2.83"></path>
+                </svg>
+                Cook: {post.recipe_data.cook_time || post.recipe_data.cooking_time} min
+              </span>
+            )}
+            {post.recipe_data.servings && (
+              <span className="recipe-tag">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                >
+                  <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                  <circle cx="9" cy="7" r="4"></circle>
+                  <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                  <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                </svg>
+                Serves {post.recipe_data.servings}
+              </span>
+            )}
+            {post.recipe_data.cuisine && (
+              <span className="recipe-tag">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                >
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <line x1="2" y1="12" x2="22" y2="12"></line>
+                  <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+                </svg>
+                {post.recipe_data.cuisine}
               </span>
             )}
             {post.recipe_data.difficulty && (
               <span className={`recipe-tag difficulty-${post.recipe_data.difficulty}`}>
                 {post.recipe_data.difficulty}
               </span>
-            )}
-            {post.recipe_data.servings && (
-              <span className="recipe-tag">Serves {post.recipe_data.servings}</span>
             )}
           </div>
 
@@ -140,8 +190,15 @@ function PostCard({ post }: PostCardProps) {
                 <div className="recipe-section">
                   <h3>Ingredients</h3>
                   <ul className="ingredients-list">
-                    {post.recipe_data.ingredients.map((ingredient, index) => (
-                      <li key={index}>{ingredient}</li>
+                    {post.recipe_data.ingredients.map((ingredient: any, index: number) => (
+                      <li key={index}>
+                        {typeof ingredient === 'string' 
+                          ? ingredient 
+                          : ingredient.amount && ingredient.unit
+                            ? `${ingredient.amount} ${ingredient.unit} ${ingredient.item || ingredient.name || ''}`
+                            : ingredient.item || ingredient.name || JSON.stringify(ingredient)
+                        }
+                      </li>
                     ))}
                   </ul>
                 </div>
@@ -151,8 +208,13 @@ function PostCard({ post }: PostCardProps) {
                 <div className="recipe-section">
                   <h3>Instructions</h3>
                   <ol className="instructions-list">
-                    {post.recipe_data.instructions.map((instruction, index) => (
-                      <li key={index}>{instruction}</li>
+                    {post.recipe_data.instructions.map((instruction: any, index: number) => (
+                      <li key={index}>
+                        {typeof instruction === 'string'
+                          ? instruction
+                          : instruction.step || instruction.text || JSON.stringify(instruction)
+                        }
+                      </li>
                     ))}
                   </ol>
                 </div>
