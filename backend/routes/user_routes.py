@@ -48,6 +48,66 @@ def jwt_required(f):
         return f(*args, **kwargs)
     return decorated_function
 
+
+def get_user_id_from_jwt() -> tuple:
+    """
+    Get the user ID from the JWT payload by looking up the email in the database.
+    Must be called within a route decorated with @jwt_required.
+    
+    Returns:
+        tuple: (user_id, None) on success, or (None, error_response) on failure
+        
+    Usage:
+        user_id, error = get_user_id_from_jwt()
+        if error:
+            return error
+        # use user_id...
+    """
+    from supabase_client import supabase  # Import here to avoid circular imports
+    
+    email = g.jwt.get('email')
+    if not email:
+        return None, (jsonify({"error": "Email not found in token"}), 401)
+    
+    try:
+        user_res = supabase.table("user").select("id").eq("email", email).execute()
+        if not user_res.data or len(user_res.data) == 0:
+            return None, (jsonify({"error": "User not found"}), 404)
+        return user_res.data[0]['id'], None
+    except Exception as e:
+        return None, (jsonify({"error": f"Failed to lookup user: {str(e)}"}), 500)
+
+
+def get_user_id_from_email(email) -> tuple:
+    """
+    Get the user ID from an email address by looking it up in the database.
+    
+    Args:
+        email: The email address to look up
+        
+    Returns:
+        tuple: (user_id, None) on success, or (None, error_response) on failure
+        
+    Usage:
+        user_id, error = get_user_id_from_email("user@example.com")
+        if error:
+            return error
+        # use user_id...
+    """
+    from supabase_client import supabase  # Import here to avoid circular imports
+    
+    if not email:
+        return None, (jsonify({"error": "Email is required"}), 400)
+    
+    try:
+        user_res = supabase.table("user").select("id").eq("email", email).execute()
+        if not user_res.data or len(user_res.data) == 0:
+            return None, (jsonify({"error": "User not found"}), 404)
+        return user_res.data[0]['id'], None
+    except Exception as e:
+        return None, (jsonify({"error": f"Failed to lookup user: {str(e)}"}), 500)
+
+
 @users_bp.route('/login')
 def login():
 

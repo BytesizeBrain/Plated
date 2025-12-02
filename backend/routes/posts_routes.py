@@ -2,7 +2,7 @@
 from flask import Blueprint, request, jsonify, g
 from supabase_client import supabase
 from services.storage_service import StorageService
-from routes.user_routes import jwt_required
+from routes.user_routes import jwt_required, get_user_id_from_jwt
 import uuid
 
 posts_bp = Blueprint("posts", __name__)
@@ -272,18 +272,10 @@ def create_post_with_data():
         if not isinstance(recipe_data['instructions'], list) or len(recipe_data['instructions']) == 0:
             return jsonify({"error": "recipe_data.instructions must be non-empty array"}), 400
 
-    # Get user_id from JWT token by looking up the email in the user table
-    email = g.jwt.get('email')
-    if not email:
-        return jsonify({"error": "Email not found in token"}), 401
-
-    try:
-        user_res = supabase.table("user").select("id").eq("email", email).execute()
-        if not user_res.data or len(user_res.data) == 0:
-            return jsonify({"error": "User not found"}), 404
-        user_id = user_res.data[0]['id']
-    except Exception as e:
-        return jsonify({"error": f"Failed to lookup user: {str(e)}"}), 500
+    # Get user_id from JWT token
+    user_id, error = get_user_id_from_jwt()
+    if error:
+        return error
 
     try:
         # Insert post into Supabase
