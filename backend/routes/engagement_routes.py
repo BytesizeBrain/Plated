@@ -1,11 +1,13 @@
 # backend/routes/engagement_routes.py
 from flask import Blueprint, request, jsonify, g
 from supabase_client import supabase
+from routes.user_routes import jwt_required, get_user_id_from_jwt
 import uuid
 
 engagement_bp = Blueprint("engagement", __name__)
 
 @engagement_bp.route("/posts/like", methods=["POST"])
+@jwt_required
 def like_post():
     """Like a post"""
     data = request.get_json() or {}
@@ -14,8 +16,9 @@ def like_post():
     if not post_id:
         return jsonify({"error": "post_id required"}), 400
 
-    # TODO: Get user_id from JWT
-    user_id = data.get('user_id', str(uuid.uuid4()))
+    user_id, error = get_user_id_from_jwt()
+    if error:
+        return error
 
     try:
         # Check if post exists
@@ -38,6 +41,7 @@ def like_post():
         return jsonify({"error": str(e)}), 500
 
 @engagement_bp.route("/posts/like", methods=["DELETE"])
+@jwt_required
 def unlike_post():
     """Unlike a post"""
     data = request.get_json() or {}
@@ -46,7 +50,9 @@ def unlike_post():
     if not post_id:
         return jsonify({"error": "post_id required"}), 400
 
-    user_id = data.get('user_id', str(uuid.uuid4()))
+    user_id, error = get_user_id_from_jwt()
+    if error:
+        return error
 
     try:
         result = supabase.table("likes")\
@@ -75,10 +81,12 @@ def get_post_likes_count(post_id):
         return jsonify({"error": str(e)}), 500
 
 @engagement_bp.route("/posts/<post_id>/liked", methods=["GET"])
+@jwt_required
 def check_user_liked_post(post_id):
     """Check if current user liked a post"""
-    # TODO: Get user_id from JWT
-    user_id = request.args.get('user_id', 'mock-user')
+    user_id, error = get_user_id_from_jwt()
+    if error:
+        return error
 
     try:
         result = supabase.table("likes")\
@@ -93,6 +101,7 @@ def check_user_liked_post(post_id):
         return jsonify({"error": str(e)}), 500
 
 @engagement_bp.route("/posts/comments", methods=["POST"])
+@jwt_required
 def create_comment():
     """Create a comment on a post"""
     data = request.get_json() or {}
@@ -102,7 +111,9 @@ def create_comment():
     if not post_id or not content:
         return jsonify({"error": "post_id and content required"}), 400
 
-    user_id = data.get('user_id', str(uuid.uuid4()))
+    user_id, error = get_user_id_from_jwt()
+    if error:
+        return error
 
     try:
         # NOTE: DB column is 'text', not 'content'
@@ -160,10 +171,12 @@ def get_post_comments(post_id):
         return jsonify({"error": str(e)}), 500
 
 @engagement_bp.route("/posts/comments/<comment_id>", methods=["DELETE"])
+@jwt_required
 def delete_comment(comment_id):
     """Delete a comment (user must own it)"""
-    # TODO: Verify user owns comment via JWT
-    user_id = request.args.get('user_id', 'mock-user')
+    user_id, error = get_user_id_from_jwt()
+    if error:
+        return error
 
     try:
         # Delete only if user owns it
@@ -182,6 +195,7 @@ def delete_comment(comment_id):
         return jsonify({"error": str(e)}), 500
 
 @engagement_bp.route("/posts/save", methods=["POST"])
+@jwt_required
 def save_post():
     """Save/bookmark a post"""
     data = request.get_json() or {}
@@ -190,7 +204,9 @@ def save_post():
     if not post_id:
         return jsonify({"error": "post_id required"}), 400
 
-    user_id = data.get('user_id', str(uuid.uuid4()))
+    user_id, error = get_user_id_from_jwt()
+    if error:
+        return error
 
     try:
         supabase.table("saved_posts").insert({
@@ -206,6 +222,7 @@ def save_post():
         return jsonify({"error": str(e)}), 500
 
 @engagement_bp.route("/posts/save", methods=["DELETE"])
+@jwt_required
 def unsave_post():
     """Unsave/unbookmark a post"""
     data = request.get_json() or {}
@@ -214,7 +231,9 @@ def unsave_post():
     if not post_id:
         return jsonify({"error": "post_id required"}), 400
 
-    user_id = data.get('user_id', str(uuid.uuid4()))
+    user_id, error = get_user_id_from_jwt()
+    if error:
+        return error
 
     try:
         supabase.table("saved_posts")\
@@ -229,9 +248,12 @@ def unsave_post():
         return jsonify({"error": str(e)}), 500
 
 @engagement_bp.route("/posts/saved", methods=["GET"])
+@jwt_required
 def get_saved_posts():
     """Get all saved posts for current user"""
-    user_id = request.args.get('user_id', 'mock-user')
+    user_id, error = get_user_id_from_jwt()
+    if error:
+        return error
     page = int(request.args.get('page', 1))
     per_page = int(request.args.get('per_page', 20))
 

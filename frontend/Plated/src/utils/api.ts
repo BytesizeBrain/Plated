@@ -266,11 +266,11 @@ export const getFeedPosts = async (
         description: post.caption || '',
         media_url: post.image_url,
         media_type: 'image' as const,
-        likes_count: post.likes_count || 0,
-        comments_count: post.comments_count || 0,
+        likes_count: post.engagement?.likes_count || 0,
+        comments_count: post.engagement?.comments_count || 0,
         views_count: post.views_count || 0,
-        is_liked: post.is_liked || false,
-        is_saved: post.is_saved || false,
+        is_liked: post.engagement?.is_liked || false,
+        is_saved: post.engagement?.is_saved || false,
         created_at: post.created_at,
       }));
 
@@ -296,11 +296,11 @@ export const getFeedPosts = async (
 
 /**
  * Like a post
- * If backend is unavailable, this will fail (no mock fallback for write operations)
+ * Requires JWT authentication
  */
 export const likePost = async (postId: string): Promise<void> => {
   try {
-    await api.post(`/api/posts/${postId}/like`);
+    await api.post('/api/posts/like', { post_id: postId });
   } catch (error) {
     if (!(error as any).response) {
       throw new Error('Unable to connect to server. Please check your connection.');
@@ -311,23 +311,26 @@ export const likePost = async (postId: string): Promise<void> => {
 
 /**
  * Unlike a post
+ * Requires JWT authentication
  */
 export const unlikePost = async (postId: string): Promise<void> => {
-  await api.post(`/api/posts/${postId}/unlike`);
+  await api.delete('/api/posts/like', { data: { post_id: postId } });
 };
 
 /**
  * Save a post
+ * Requires JWT authentication
  */
 export const savePost = async (postId: string): Promise<void> => {
-  await api.post(`/api/posts/${postId}/save`);
+  await api.post('/api/posts/save', { post_id: postId });
 };
 
 /**
  * Unsave a post
+ * Requires JWT authentication
  */
 export const unsavePost = async (postId: string): Promise<void> => {
-  await api.post(`/api/posts/${postId}/unsave`);
+  await api.delete('/api/posts/save', { data: { post_id: postId } });
 };
 
 /**
@@ -337,8 +340,8 @@ export const unsavePost = async (postId: string): Promise<void> => {
 export const getPostComments = async (postId: string): Promise<Comment[]> => {
   return withFallback(
     async () => {
-      const response = await api.get<Comment[]>(`/api/posts/${postId}/comments`);
-      return response.data;
+      const response = await api.get<{ comments: Comment[]; count: number }>(`/api/posts/${postId}/comments`);
+      return response.data.comments;
     },
     mockComments.filter(c => c.post_id === postId),
     'Post Comments'
@@ -347,9 +350,10 @@ export const getPostComments = async (postId: string): Promise<Comment[]> => {
 
 /**
  * Add a comment to a post
+ * Requires JWT authentication
  */
 export const addComment = async (postId: string, content: string): Promise<Comment> => {
-  const response = await api.post<Comment>(`/api/posts/${postId}/comments`, { content });
+  const response = await api.post<Comment>('/api/posts/comments', { post_id: postId, content });
   return response.data;
 };
 

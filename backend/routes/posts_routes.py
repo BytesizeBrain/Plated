@@ -50,11 +50,16 @@ def list_posts():
         return jsonify({"Error": str(e)}), 500
 
 @posts_bp.route("/feed", methods=["GET"])
+@jwt_required
 def get_feed():
     try:
         page = int(request.args.get("page", 1))
         per_page = int(request.args.get("per_page", 10))
-        user_id = request.args.get("user_id")  # Current user ID for checking likes/saves
+
+        # Get user_id from JWT token
+        user_id, error = get_user_id_from_jwt()
+        if error:
+            return error
 
         start = (page - 1) * per_page
         end = start + per_page - 1
