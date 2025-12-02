@@ -1,7 +1,8 @@
 # backend/routes/posts_routes.py
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, g
 from supabase_client import supabase
 from services.storage_service import StorageService
+from routes.user_routes import jwt_required
 import uuid
 
 posts_bp = Blueprint("posts", __name__)
@@ -235,10 +236,12 @@ def create_recipe():
 
 
 @posts_bp.route("/posts/create", methods=["POST"])
+@jwt_required
 def create_post_with_data():
     """
     Create a post (simple or recipe) with JSON data
     Expects: post_type, image_url, caption, optional recipe_data
+    Requires: JWT authentication (user_id extracted from token email)
     """
     data = request.get_json() or {}
 
@@ -269,9 +272,18 @@ def create_post_with_data():
         if not isinstance(recipe_data['instructions'], list) or len(recipe_data['instructions']) == 0:
             return jsonify({"error": "recipe_data.instructions must be non-empty array"}), 400
 
-    # TODO: Get user_id from JWT token (for now using mock)
-    # In production: user_id = g.jwt['sub'] or similar
-    user_id = data.get('user_id', str(uuid.uuid4()))
+    # Get user_id from JWT token by looking up the email in the user table
+    email = g.jwt.get('email')
+    if not email:
+        return jsonify({"error": "Email not found in token"}), 401
+
+    try:
+        user_res = supabase.table("user").select("id").eq("email", email).execute()
+        if not user_res.data or len(user_res.data) == 0:
+            return jsonify({"error": "User not found"}), 404
+        user_id = user_res.data[0]['id']
+    except Exception as e:
+        return jsonify({"error": f"Failed to lookup user: {str(e)}"}), 500
 
     try:
         # Insert post into Supabase
@@ -291,46 +303,6 @@ def create_post_with_data():
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
-
-@posts_bp.route("/create_post", methods=["POST"])
-def create_post_upload():  # renamed to avoid clashing with create_recipe
-    if "image" not in request.files:
-        return jsonify({"Error": "No image provided"}), 400
-
-    file = request.files["image"]
-    if file.filename == "":
-        return jsonify({"Error": "No selected file"}), 400
-
-    user_id = request.form.get("user_id")
-    caption = request.form.get("caption", "")
-
-    try:
-        unique_name = f"{uuid.uuid4()}_{file.filename}"
-        storage_path = f"uploads/{unique_name}"
-
-        file_data = file.read()
-
-        # Upload to "post-images" bucket
-        supabase.storage.from_("post-images").upload(storage_path, file_data)
-
-        public_URL = supabase.storage.from_("post-images").get_public_url(storage_path)
-
-        supabase.table("posts").insert({
-            "user_id": user_id,
-            "image_url": public_URL,
-            "caption": caption,
-        }).execute()
-
-        return jsonify({
-            "Message": "Post created successfully",
-            "Caption": caption,
-            "File_name": file.filename,
-            "Image_url": public_URL,
-        }), 200
-
-    except Exception as e:
-        return jsonify({"Error": str(e)}), 500
-
 
 @posts_bp.route("/posts/upload-image", methods=["POST"])
 def upload_post_image():
