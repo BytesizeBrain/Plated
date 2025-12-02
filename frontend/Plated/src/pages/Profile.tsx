@@ -20,12 +20,25 @@ function Profile() {
   const [editUsername, setEditUsername] = useState('');
   const [editDisplayName, setEditDisplayName] = useState('');
   const [editProfilePic, setEditProfilePic] = useState('');
+  const [profilePicError, setProfilePicError] = useState('');
   
   const [usernameAvailable, setUsernameAvailable] = useState<boolean | null>(null);
   const [usernameCheckLoading, setUsernameCheckLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
+
+  // Helper to validate image URLs: Allow only https? URLs (optionally data: if needed)
+  function isValidImageUrl(url: string): boolean {
+    // Allow only http(s) URLs, optionally add support for data:image
+    try {
+      const allowedProtocols = ['http:', 'https:'];
+      const parsed = new URL(url);
+      return allowedProtocols.includes(parsed.protocol);
+    } catch (e) {
+      return false;
+    }
+  }
 
   useEffect(() => {
     const initProfile = async () => {
@@ -243,7 +256,10 @@ function Profile() {
               <div className="profile-pic-section">
                 <div className="profile-pic-wrapper">
                   <img 
-                    src={isEditing ? editProfilePic || profilePic : profilePic} 
+                    src={isEditing 
+                      ? (isValidImageUrl(editProfilePic) ? editProfilePic : profilePic) 
+                      : profilePic
+                    }
                     alt="Profile" 
                     className="profile-pic-large"
                     onError={(e) => {
@@ -349,16 +365,29 @@ function Profile() {
                       id="editProfilePic"
                       type="url"
                       value={editProfilePic}
-                      onChange={(e) => setEditProfilePic(e.target.value)}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        if (val === '' || isValidImageUrl(val)) {
+                          setEditProfilePic(val);
+                          setProfilePicError('');
+                        } else {
+                          setProfilePicError('Please enter a valid image URL (https)'); 
+                          setEditProfilePic(val); // let them see what they typed
+                        }
+                      }}
                       placeholder="https://example.com/your-photo.jpg"
                     />
-                  </div>
+                    {profilePicError && (
+                      <div className="input-error" style={{ color: 'red', fontSize: '0.9em' }}>
+                        {profilePicError}
+                      </div>
+                    )}
 
                   <div className="form-actions">
                     <button 
                       onClick={handleSave} 
                       className="save-btn"
-                      disabled={isSubmitting || (editUsername !== username && usernameAvailable === false)}
+                      disabled={isSubmitting || (editUsername !== username && usernameAvailable === false) || profilePicError !== ''}
                     >
                       {isSubmitting ? 'Saving...' : 'Save Changes'}
                     </button>
