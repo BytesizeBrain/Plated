@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { isAuthenticated, removeToken, setToken } from '../utils/auth';
 import { updateUser, checkUsername, getUserProfile } from '../utils/api';
+import BottomNav from '../components/navigation/BottomNav';
+import './Profile.css';
 
 function Profile() {
   const navigate = useNavigate();
@@ -181,132 +183,201 @@ function Profile() {
   };
 
   return (
-    <div className="profile-container">
-      <div className="profile-card">
-        <div className="profile-header">
-          <h1>My Profile</h1>
+    <div className="profile-page">
+      {/* Header */}
+      <header className="profile-header">
+        <div className="profile-header-content">
+          <button
+            className="back-btn"
+            onClick={() => navigate('/feed')}
+            aria-label="Go back to feed"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="m15 18-6-6 6-6"></path>
+            </svg>
+          </button>
+          <h1 className="profile-title">My Profile</h1>
           <button onClick={handleLogout} className="logout-btn">
-            Logout
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+              <polyline points="16 17 21 12 16 7"></polyline>
+              <line x1="21" y1="12" x2="9" y2="12"></line>
+            </svg>
+            <span>Logout</span>
           </button>
         </div>
+      </header>
 
-        {successMessage && <div className="success-message">{successMessage}</div>}
-        {error && <div className="error-message">{error}</div>}
+      <div className="profile-content-wrapper">
+        <div className="profile-card">
+          {successMessage && <div className="success-message">{successMessage}</div>}
+          {error && <div className="error-message">{error}</div>}
 
-        {isLoading ? (
-          <div className="profile-content">
-            <p>Loading profile...</p>
-          </div>
-        ) : (
-          <div className="profile-content">
-          <div className="profile-pic-section">
-            <img 
-              src={isEditing ? editProfilePic || profilePic : profilePic} 
-              alt="Profile" 
-              className="profile-pic-large"
-              onError={(e) => {
-                e.currentTarget.src = 'https://static.vecteezy.com/system/resources/previews/009/292/244/non_2x/default-avatar-icon-of-social-media-user-vector.jpg';
-              }}
-            />
-          </div>
-
-          {!isEditing ? (
-            <div className="profile-info">
-              <div className="info-item">
-                <label>Username</label>
-                <p>@{username}</p>
-              </div>
-
-              <div className="info-item">
-                <label>Email</label>
-                <p>{email}</p>
-              </div>
-
-              <div className="info-item">
-                <label>Display Name</label>
-                <p>{displayName}</p>
-              </div>
-
-              <button onClick={handleEdit} className="edit-btn">
-                Edit Profile
-              </button>
-              
-              <button 
-                onClick={() => navigate('/feed')} 
-                className="feed-btn"
-              >
-                Go to Feed
-              </button>
+          {isLoading ? (
+            <div className="profile-loading">
+              <div className="loading-spinner"></div>
+              <p>Loading profile...</p>
             </div>
           ) : (
-            <div className="profile-edit-form">
-              <div className="form-group">
-                <label htmlFor="editDisplayName">Display Name *</label>
-                <input
-                  id="editDisplayName"
-                  type="text"
-                  value={editDisplayName}
-                  onChange={(e) => setEditDisplayName(e.target.value)}
-                  placeholder="Your full name"
-                  required
-                />
+            <div className="profile-content">
+              <div className="profile-pic-section">
+                <div className="profile-pic-wrapper">
+                  <img 
+                    src={isEditing ? editProfilePic || profilePic : profilePic} 
+                    alt="Profile" 
+                    className="profile-pic-large"
+                    onError={(e) => {
+                      e.currentTarget.src = 'https://static.vecteezy.com/system/resources/previews/009/292/244/non_2x/default-avatar-icon-of-social-media-user-vector.jpg';
+                    }}
+                  />
+                </div>
+                <h2 className="profile-display-name">{displayName}</h2>
+                <span className="profile-username">@{username}</span>
               </div>
 
-              <div className="form-group">
-                <label htmlFor="editUsername">Username</label>
-                <input
-                  id="editUsername"
-                  type="text"
-                  value={editUsername}
-                  onChange={(e) => setEditUsername(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ''))}
-                  placeholder="Choose a unique username"
-                  minLength={3}
-                />
-                {editUsername && editUsername.length >= 3 && editUsername !== username && (
-                  <div className="username-feedback">
-                    {usernameCheckLoading ? (
-                      <span className="checking">Checking availability...</span>
-                    ) : usernameAvailable === true ? (
-                      <span className="available">✓ Username is available</span>
-                    ) : usernameAvailable === false ? (
-                      <span className="unavailable">✗ Username is taken</span>
-                    ) : null}
+              {!isEditing ? (
+                <div className="profile-info">
+                  <div className="info-grid">
+                    <div className="info-item">
+                      <div className="info-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path>
+                          <circle cx="12" cy="7" r="4"></circle>
+                        </svg>
+                      </div>
+                      <div className="info-content">
+                        <label>Username</label>
+                        <p>@{username}</p>
+                      </div>
+                    </div>
+
+                    <div className="info-item">
+                      <div className="info-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <rect width="20" height="16" x="2" y="4" rx="2"></rect>
+                          <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"></path>
+                        </svg>
+                      </div>
+                      <div className="info-content">
+                        <label>Email</label>
+                        <p>{email}</p>
+                      </div>
+                    </div>
+
+                    <div className="info-item">
+                      <div className="info-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                          <circle cx="12" cy="7" r="4"></circle>
+                        </svg>
+                      </div>
+                      <div className="info-content">
+                        <label>Display Name</label>
+                        <p>{displayName}</p>
+                      </div>
+                    </div>
                   </div>
-                )}
-              </div>
 
-              <div className="form-group">
-                <label htmlFor="editProfilePic">Profile Picture URL</label>
-                <input
-                  id="editProfilePic"
-                  type="url"
-                  value={editProfilePic}
-                  onChange={(e) => setEditProfilePic(e.target.value)}
-                  placeholder="https://example.com/your-photo.jpg"
-                />
-              </div>
+                  <button onClick={handleEdit} className="edit-btn">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"></path>
+                      <path d="m15 5 4 4"></path>
+                    </svg>
+                    Edit Profile
+                  </button>
+                </div>
+              ) : (
+                <div className="profile-edit-form">
+                  <div className="form-group">
+                    <label htmlFor="editDisplayName">Display Name *</label>
+                    <input
+                      id="editDisplayName"
+                      type="text"
+                      value={editDisplayName}
+                      onChange={(e) => setEditDisplayName(e.target.value)}
+                      placeholder="Your full name"
+                      required
+                    />
+                  </div>
 
-              <div className="form-actions">
-                <button 
-                  onClick={handleSave} 
-                  className="save-btn"
-                  disabled={isSubmitting || (editUsername !== username && usernameAvailable === false)}
-                >
-                  {isSubmitting ? 'Saving...' : 'Save Changes'}
-                </button>
-                <button 
-                  onClick={handleCancel} 
-                  className="cancel-btn"
-                  disabled={isSubmitting}
-                >
-                  Cancel
-                </button>
-              </div>
+                  <div className="form-group">
+                    <label htmlFor="editUsername">Username</label>
+                    <input
+                      id="editUsername"
+                      type="text"
+                      value={editUsername}
+                      onChange={(e) => setEditUsername(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ''))}
+                      placeholder="Choose a unique username"
+                      minLength={3}
+                    />
+                    {editUsername && editUsername.length >= 3 && editUsername !== username && (
+                      <div className="username-feedback">
+                        {usernameCheckLoading ? (
+                          <span className="checking">Checking availability...</span>
+                        ) : usernameAvailable === true ? (
+                          <span className="available">✓ Username is available</span>
+                        ) : usernameAvailable === false ? (
+                          <span className="unavailable">✗ Username is taken</span>
+                        ) : null}
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="form-group">
+                    <label htmlFor="editProfilePic">Profile Picture URL</label>
+                    <input
+                      id="editProfilePic"
+                      type="url"
+                      value={editProfilePic}
+                      onChange={(e) => setEditProfilePic(e.target.value)}
+                      placeholder="https://example.com/your-photo.jpg"
+                    />
+                  </div>
+
+                  <div className="form-actions">
+                    <button 
+                      onClick={handleSave} 
+                      className="save-btn"
+                      disabled={isSubmitting || (editUsername !== username && usernameAvailable === false)}
+                    >
+                      {isSubmitting ? 'Saving...' : 'Save Changes'}
+                    </button>
+                    <button 
+                      onClick={handleCancel} 
+                      className="cancel-btn"
+                      disabled={isSubmitting}
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </div>
-        )}
       </div>
+
+      <BottomNav />
     </div>
   );
 }
