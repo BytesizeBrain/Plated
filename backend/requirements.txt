@@ -4,7 +4,7 @@ python-dotenv
 Authlib
 Flask-OAuthlib
 PyJWT
-datetime
 flask_cors
 pytest
 supabase
+psycopg2-binary
