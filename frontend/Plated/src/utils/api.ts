@@ -293,12 +293,94 @@ export const getFeedPosts = async (
 };
 
 
+/**
+ * Search posts by keyword
+ * Searches through caption and recipe_data (title, ingredients, tags, cuisine)
+ * Falls back to mock data filtering if backend is unavailable
+ */
+export const searchPosts = async (
+  query: string,
+  page: number = 1,
+  perPage: number = 20
+): Promise<{ posts: FeedPost[]; has_more: boolean; total: number }> => {
+  const searchQuery = query.toLowerCase().trim();
+
+  return withFallback(
+    async () => {
+      const resp = await api.get<{
+        page: number;
+        per_page: number;
+        total: number;
+        has_more: boolean;
+        results: any[];
+      }>("/api/posts/search", {
+        params: {
+          q: searchQuery,
+          page,
+          per_page: perPage,
+        },
+      });
+
+      // Transform backend response to match frontend FeedPost structure
+      const backendPosts = resp.data.results ?? [];
+      const posts: FeedPost[] = backendPosts.map((post: any) => ({
+        id: post.id,
+        user_id: post.user?.id || '',
+        user: {
+          username: post.user?.username || 'unknown',
+          display_name: post.user?.username || 'Unknown User',
+          profile_pic: post.user?.profile_pic || '',
+        },
+        title: post.recipe_data?.title || post.caption || 'Untitled Post',
+        description: post.caption || '',
+        media_url: post.image_url,
+        media_type: 'image' as const,
+        recipe_data: post.recipe_data,
+        likes_count: post.engagement?.likes_count || 0,
+        comments_count: post.engagement?.comments_count || 0,
+        views_count: post.views_count || 0,
+        is_liked: post.engagement?.is_liked || false,
+        is_saved: post.engagement?.is_saved || false,
+        created_at: post.created_at,
+      }));
+
+      return {
+        posts,
+        has_more: resp.data.has_more,
+        total: resp.data.total,
+      };
+    },
+    (() => {
+      // Mock data fallback - filter mock posts locally
+      const filtered = mockFeedPosts.filter(post =>
+        post.title.toLowerCase().includes(searchQuery) ||
+        post.description?.toLowerCase().includes(searchQuery) ||
+        post.recipe_data?.ingredients?.some((ingredient: string) =>
+          ingredient.toLowerCase().includes(searchQuery)
+        ) ||
+        post.user.display_name.toLowerCase().includes(searchQuery) ||
+        post.user.username.toLowerCase().includes(searchQuery)
+      );
+      const startIndex = (page - 1) * perPage;
+      const endIndex = startIndex + perPage;
+      const posts = filtered.slice(startIndex, endIndex);
+      return {
+        posts,
+        has_more: endIndex < filtered.length,
+        total: filtered.length,
+      };
+    })(),
+    "Search Posts"
+  );
+};
+
 
 /**
  * Like a post
  * Requires JWT authentication
  */
 export const likePost = async (postId: string): Promise<void> => {
+
   try {
     await api.post('/api/posts/like', { post_id: postId });
   } catch (error) {
