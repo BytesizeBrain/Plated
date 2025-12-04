@@ -1,8 +1,13 @@
 import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useGamificationStore } from '../../stores/gamificationStore';
-import { getChallenge } from '../../utils/api';
-import type { Challenge } from '../../types';
+import { getChallenge, estimateRecipeBudget } from '../../utils/api';
+import type {
+  Challenge,
+  IngredientEstimateRequestItem,
+  BudgetEstimateResponse,
+} from '../../types';
+
 import './CookModePage.css';
 
 function CookModePage() {
@@ -16,6 +21,11 @@ function CookModePage() {
   const [isTimerRunning, setIsTimerRunning] = useState(false);
   const [timerSeconds, setTimerSeconds] = useState(0);
   const timerIntervalRef = useRef<number | null>(null);
+  // Budget / ingredient price state
+  const [budgetTarget, setBudgetTarget] = useState<number | ''>('');
+  const [budgetResult, setBudgetResult] = useState<BudgetEstimateResponse | null>(null);
+  const [isEstimating, setIsEstimating] = useState(false);
+  const [budgetError, setBudgetError] = useState<string | null>(null);
 
   // Load challenge data with smart fallback (tries API first, falls back to mock if unavailable)
   useEffect(() => {
@@ -83,6 +93,77 @@ function CookModePage() {
   const steps = challenge.recipe.steps;
   const currentStep = steps[currentStepIndex];
   const progress = ((currentStepIndex + 1) / steps.length) * 100;
+
+  // Build ingredient request items for backend
+  type RecipeIngredientObject = {
+    item?: string;
+    name?: string;
+    amount?: string;
+    unit?: string;
+  };
+
+  function buildIngredientRequestItems(): IngredientEstimateRequestItem[] {
+    const raw = challenge?.recipe?.ingredients as (string | RecipeIngredientObject)[] | undefined;
+
+    if (!raw || raw.length === 0) {
+      return [];
+    }
+
+    return raw
+      .map((ing) => {
+        // Case 1: simple string ingredient like "chicken breast"
+        if (typeof ing === 'string') {
+          return {
+            name: ing,
+            quantity: 1,
+          };
+        }
+
+        // Case 2: object ingredient: { item?: string; name?: string; unit?: string; ... }
+        const name = (ing.item || ing.name || '').trim();
+        if (!name) {
+          return null; // skip if we can't find a usable name
+        }
+
+        return {
+          name,
+          quantity: 1,
+          unit: ing.unit,
+        };
+      })
+      .filter((x): x is IngredientEstimateRequestItem => x !== null);
+  }
+
+  // Handle budget estimation
+  const handleEstimateBudget = async () => {
+    if (!challenge?.recipe) {
+      setBudgetError('No recipe loaded to estimate cost.');
+      return;
+    }
+
+    const items = buildIngredientRequestItems();
+    if (items.length === 0) {
+      setBudgetError('This recipe has no ingredients to estimate.');
+      return;
+    }
+
+    setIsEstimating(true);
+    setBudgetError(null);
+
+    try {
+      const maxBudget =
+        typeof budgetTarget === 'number' ? budgetTarget : undefined;
+
+      const result = await estimateRecipeBudget(items, maxBudget);
+      setBudgetResult(result);
+    } catch (err: any) {
+      console.error('Budget estimate failed:', err);
+      setBudgetError(err?.message || 'Failed to estimate grocery cost.');
+    } finally {
+      setIsEstimating(false);
+    }
+  };
+
 
   const startTimer = () => {
     if (!currentStep.timerSec) return;
@@ -179,6 +260,92 @@ function CookModePage() {
 
       {/* Main Content */}
       <main className="cook-content">
+        {/* Budget & Grocery Cost */}
+        <section className="cook-budget-panel">
+          <h2 className="cook-budget-title">Budget & Grocery Cost</h2>
+
+          <div className="cook-budget-controls">
+            <label className="cook-budget-label">
+              Your budget ($)
+              <input
+                type="number"
+                min={0}
+                step={1}
+                value={budgetTarget}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  setBudgetTarget(val === '' ? '' : Number(val));
+                }}
+                className="cook-budget-input"
+                placeholder="e.g. 25"
+              />
+            </label>
+
+            <button
+              type="button"
+              onClick={handleEstimateBudget}
+              disabled={isEstimating}
+              className="cook-budget-button"
+            >
+              {isEstimating ? 'Estimating…' : 'Estimate grocery cost'}
+            </button>
+          </div>
+
+          {budgetError && (
+            <p className="cook-budget-error">{budgetError}</p>
+          )}
+
+          {budgetResult && (
+            <div className="cook-budget-result">
+              <p className="cook-budget-total">
+                Estimated total:{' '}
+                <strong>${budgetResult.total_estimated_cost.toFixed(2)}</strong>{' '}
+                {budgetResult.currency}
+              </p>
+
+              {budgetResult.budget_goal && (
+                <div className="cook-budget-goal">
+                  {budgetResult.budget_goal.under_budget ? (
+                    <p>
+                      🎉 You’re under budget! You save{' '}
+                      <strong>${budgetResult.budget_goal.savings.toFixed(2)}</strong>  
+                      vs your goal of{' '}
+                      <strong>${budgetResult.budget_goal.max_budget.toFixed(2)}</strong>
+                    </p>
+                  ) : (
+                    <p>
+                      ⚠️ You’re over budget by{' '}
+                      <strong>{Math.abs(budgetResult.budget_goal.savings).toFixed(2)}</strong>  
+                      vs your goal of{' '}
+                      <strong>${budgetResult.budget_goal.max_budget.toFixed(2)}</strong>
+                    </p>
+                  )}
+
+                  <p>
+                    Potential coins earned:{' '}
+                    <strong>{budgetResult.budget_goal.coins_earned}</strong> 🪙
+                  </p>
+                </div>
+              )}
+
+              <details className="cook-budget-items">
+                <summary>View ingredient breakdown</summary>
+                <ul>
+                  {budgetResult.items.map((item, idx) => (
+                    <li key={idx}>
+                      <strong>{item.ingredient_name}</strong> —{' '}
+                      {item.estimated_cost != null
+                        ? `$${item.estimated_cost.toFixed(2)}`
+                        : item.message || 'No price data found'}
+                      {item.store_name ? ` @ ${item.store_name}` : ''}
+                    </li>
+                  ))}
+                </ul>
+              </details>
+            </div>
+          )}
+        </section>
+
         {/* Safety Note */}
         {currentStep.safetyNote && (
           <div className="safety-alert">
