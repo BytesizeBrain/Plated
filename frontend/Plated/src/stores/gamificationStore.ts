@@ -1,4 +1,6 @@
 import { create } from 'zustand';
+import { API_BASE_URL } from '../utils/api';
+import { getToken } from '../utils/auth';
 import type {
   Challenge,
   RewardSummary,
@@ -6,7 +8,11 @@ import type {
   CookSession,
   Squad,
   LeaderboardEntry,
-  Coupon
+  Coupon,
+  DailyIngredient,
+  SkillTrack,
+  RecipeCompletionResponse,
+  CompleteRecipeResponse
 } from '../types';
 
 interface GamificationState {
@@ -24,6 +30,11 @@ interface GamificationState {
 
   // Market
   coupons: Coupon[];
+
+  // NEW: Recipe Completion & Skill Tracks
+  dailyIngredient: DailyIngredient | null;
+  skillTracks: SkillTrack[];
+  completionsByRecipe: Record<string, RecipeCompletionResponse>;
 
   // Loading states
   isLoading: boolean;
@@ -58,6 +69,14 @@ interface GamificationState {
   claimCoupon: (couponId: string) => void;
   redeemCoupon: (couponId: string) => void;
 
+  // NEW Actions - Recipe Completion & Skill Tracks
+  fetchDailyIngredient: () => Promise<void>;
+  fetchSkillTracks: (userId?: string) => Promise<void>;
+  fetchRecipeCompletions: (recipeId: string) => Promise<void>;
+  completeRecipe: (recipeId: string, userId: string) => Promise<CompleteRecipeResponse>;
+  setDailyIngredient: (ingredient: DailyIngredient) => void;
+  setSkillTracks: (tracks: SkillTrack[]) => void;
+
   // Utility
   setLoading: (isLoading: boolean) => void;
   setError: (error: string | null) => void;
@@ -74,7 +93,7 @@ const calculateNextLevelXp = (level: number): number => {
   return level * level * 100;
 };
 
-export const useGamificationStore = create<GamificationState>((set) => ({
+export const useGamificationStore = create<GamificationState>((set, get) => ({
   challenges: [],
   activeChallenges: [],
   currentSession: null,
@@ -82,6 +101,9 @@ export const useGamificationStore = create<GamificationState>((set) => ({
   squad: null,
   leaderboard: [],
   coupons: [],
+  dailyIngredient: null,
+  skillTracks: [],
+  completionsByRecipe: {},
   isLoading: false,
   error: null,
 
@@ -247,6 +269,139 @@ export const useGamificationStore = create<GamificationState>((set) => ({
     ),
   })),
 
+  // NEW Actions - Recipe Completion & Skill Tracks
+  fetchDailyIngredient: async () => {
+    try {
+      set({ isLoading: true, error: null });
+      const token = getToken();
+      const response = await fetch(`${API_BASE_URL}/api/gamification/daily-ingredient`, {
+        headers: token ? { 'Authorization': `Bearer ${token}` } : {},
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch daily ingredient');
+      }
+
+      const data: DailyIngredient = await response.json();
+      set({ dailyIngredient: data });
+    } catch (error) {
+      console.error('Error fetching daily ingredient:', error);
+      set({ error: error instanceof Error ? error.message : 'Unknown error' });
+    } finally {
+      set({ isLoading: false });
+    }
+  },
+
+  fetchSkillTracks: async (userId?: string) => {
+    try {
+      set({ isLoading: true, error: null });
+      const url = userId
+        ? `${API_BASE_URL}/api/gamification/skill-tracks?user_id=${userId}`
+        : `${API_BASE_URL}/api/gamification/skill-tracks`;
+
+      const token = getToken();
+      const response = await fetch(url, {
+        headers: token ? { 'Authorization': `Bearer ${token}` } : {},
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch skill tracks');
+      }
+
+      const data: SkillTrack[] = await response.json();
+      set({ skillTracks: data });
+    } catch (error) {
+      console.error('Error fetching skill tracks:', error);
+      set({ error: error instanceof Error ? error.message : 'Unknown error' });
+    } finally {
+      set({ isLoading: false });
+    }
+  },
+
+  fetchRecipeCompletions: async (recipeId: string) => {
+    try {
+      set({ isLoading: true, error: null });
+      const token = getToken();
+      const response = await fetch(`${API_BASE_URL}/api/gamification/recipes/${recipeId}/completions`, {
+        headers: token ? { 'Authorization': `Bearer ${token}` } : {},
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch recipe completions');
+      }
+
+      const data: RecipeCompletionResponse = await response.json();
+      set((state) => ({
+        completionsByRecipe: {
+          ...state.completionsByRecipe,
+          [recipeId]: data,
+        },
+      }));
+    } catch (error) {
+      console.error(`Error fetching completions for recipe ${recipeId}:`, error);
+      set({ error: error instanceof Error ? error.message : 'Unknown error' });
+    } finally {
+      set({ isLoading: false });
+    }
+  },
+
+  completeRecipe: async (recipeId: string, userId: string): Promise<CompleteRecipeResponse> => {
+    try {
+      set({ isLoading: true, error: null });
+      const token = getToken();
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+      };
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+      const response = await fetch(
+        `${API_BASE_URL}/api/gamification/recipes/${recipeId}/complete`,
+        {
+          method: 'POST',
+          headers,
+          body: JSON.stringify({ user_id: userId }),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error('Failed to complete recipe');
+      }
+
+      const data: CompleteRecipeResponse = await response.json();
+
+      // Refresh related data
+      await Promise.all([
+        get().fetchRecipeCompletions(recipeId),
+        get().fetchSkillTracks(userId),
+      ]);
+
+      // Update rewards if level up occurred
+      if (data.level_up && get().rewards) {
+        const currentRewards = get().rewards!;
+        set({
+          rewards: {
+            ...currentRewards,
+            xp: currentRewards.xp + data.xp_gained,
+            coins: currentRewards.coins + data.reward,
+          },
+        });
+      }
+
+      return data;
+    } catch (error) {
+      console.error(`Error completing recipe ${recipeId}:`, error);
+      set({ error: error instanceof Error ? error.message : 'Unknown error' });
+      throw error;
+    } finally {
+      set({ isLoading: false });
+    }
+  },
+
+  setDailyIngredient: (ingredient) => set({ dailyIngredient: ingredient }),
+
+  setSkillTracks: (tracks) => set({ skillTracks: tracks }),
+
   // Utility
   setLoading: (isLoading) => set({ isLoading }),
 
@@ -260,6 +415,9 @@ export const useGamificationStore = create<GamificationState>((set) => ({
     squad: null,
     leaderboard: [],
     coupons: [],
+    dailyIngredient: null,
+    skillTracks: [],
+    completionsByRecipe: {},
     isLoading: false,
     error: null,
   }),

@@ -6,6 +6,7 @@ import './App.css';
 import Landing from './pages/Landing';
 import Login from './pages/Login';
 import Register from './pages/Register';
+import { SkillTracksPage } from './pages/SkillTracksPage';
 
 // Lazy load non-critical pages
 const FeedPage = lazy(() => import('./pages/feed/FeedPage'));
@@ -16,6 +17,8 @@ const SavedPostsPage = lazy(() => import('./pages/SavedPostsPage'));
 const ChallengesPage = lazy(() => import('./pages/challenges/ChallengesPage'));
 const CookModePage = lazy(() => import('./pages/cook/CookModePage'));
 const CreatePostPage = lazy(() => import('./pages/CreatePostPage'));
+const SquadPage = lazy(() => import('./pages/squad/SquadPage'));
+const StorePage = lazy(() => import('./pages/store/StorePage'));
 
 // Loading component
 function PageLoader() {
@@ -43,7 +46,10 @@ function App() {
           <Route path="/messages/:conversationId" element={<DirectMessagesPage />} />
           <Route path="/saved" element={<SavedPostsPage />} />
           <Route path="/challenges" element={<ChallengesPage />} />
+          <Route path="/tracks" element={<SkillTracksPage />} />
           <Route path="/cook/:challengeId" element={<CookModePage />} />
+          <Route path="/squad" element={<SquadPage />} />
+          <Route path="/store" element={<StorePage />} />
         </Routes>
       </Suspense>
     </Router>

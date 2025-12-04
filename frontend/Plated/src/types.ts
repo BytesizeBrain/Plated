@@ -301,6 +301,114 @@ export interface Coupon {
   iconUrl?: string;
 }
 
+// ============================================================================
+// NEW GAMIFICATION TYPES - Recipe Completion & Skill Tracks
+// ============================================================================
+
+// Recipe Completion (Cooked-It Chain)
+export interface RecipeCompletionUser {
+  userId: string;
+  username: string;
+  avatarUrl?: string;
+  createdAt: string;
+  hasProof?: boolean;       // Whether this completion has verified proof
+  proofImageUrl?: string;   // Thumbnail of proof image
+}
+
+export interface RecipeCompletionResponse {
+  count: number;
+  users: RecipeCompletionUser[];
+  recipeId: string;
+  proofCount?: number;      // Number of completions with verified proof
+}
+
+export interface CompleteRecipeResponse {
+  reward: number;           // Total coins earned
+  creator_bonus: number;    // Bonus given to creator
+  chaos_bonus: number;      // Bonus from daily ingredient
+  xp_gained: number;        // XP earned
+  level_up: boolean;        // Whether user leveled up
+  proof_bonus?: number;     // Bonus for submitting proof
+}
+
+// Proof-of-Cook Types
+export type ProofOfCookStatus = 'pending' | 'verified' | 'rejected';
+
+export interface RecipeProof {
+  id: string;
+  userId: string;
+  recipeId: string;
+  imageUrl: string;
+  note?: string;
+  verificationStatus: ProofOfCookStatus;
+  verificationScore?: number;
+  coinsAwarded: number;
+  createdAt: string;
+}
+
+export interface ProofSubmitResponse {
+  proof_id: string;
+  verification_status: ProofOfCookStatus;
+  verification_score?: number;
+  coins_awarded: number;
+  message: string;
+}
+
+export interface ProofStats {
+  recipeId: string;
+  totalCooks: number;
+  withProof: number;
+  verifiedProofs: number;
+  recentProofs: {
+    id: string;
+    userId: string;
+    imageUrl: string;
+    note?: string;
+    createdAt: string;
+  }[];
+}
+
+// Daily Chaos Ingredient
+export interface DailyIngredient {
+  active: boolean;
+  ingredient?: string;      // e.g., "eggs", "chicken"
+  multiplier?: number;      // e.g., 2.0 for 2x coins
+  date?: string;            // ISO date string
+  icon_emoji?: string;      // e.g., "🥚"
+}
+
+// Skill Tracks
+export interface SkillTrack {
+  id: string;
+  slug: string;             // e.g., "microwave-master"
+  name: string;             // e.g., "Microwave Master"
+  description?: string;
+  icon?: string;            // Emoji or icon identifier
+  totalRecipes: number;
+  completedRecipes: number;
+  completedAt?: string | null;
+}
+
+// Coin Transaction (for history display)
+export interface CoinTransaction {
+  id: string;
+  user_id: string;
+  amount: number;           // Positive = earned, negative = spent
+  reason: string;           // e.g., "recipe_completion", "creator_bonus"
+  metadata?: Record<string, any>;
+  created_at: string;
+}
+
+// Recipe Ingredient Tag (for admin/seeding purposes)
+export interface RecipeIngredientTag {
+  id: string;
+  recipe_id: string;
+  ingredient: string;       // Lowercase ingredient name
+  created_at: string;
+}
+
+// ============================================================================
+
 // Mock Mode Configuration
 export interface MockConfig {
   enabled: boolean;
