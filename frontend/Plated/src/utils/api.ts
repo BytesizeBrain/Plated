@@ -15,7 +15,9 @@ import type {
   SendMessageData,
   FeedFilter,
   Challenge,
-  RewardSummary
+  RewardSummary,
+  IngredientEstimateRequestItem,
+  BudgetEstimateResponse
 } from '../types';
 
 // Determine the base URL for the backend API with environment fallbacks
@@ -677,6 +679,30 @@ export const createPost = async (postData: {
     }
     throw new Error('Failed to create post. Please try again.');
   }
+};
+
+// ===== INGREDIENT PRICES / BUDGET API =====
+
+export const estimateRecipeBudget = async (
+  ingredients: IngredientEstimateRequestItem[],
+  maxBudget?: number,
+  location?: string
+): Promise<BudgetEstimateResponse> => {
+  const payload: any = { ingredients };
+
+  if (typeof maxBudget === 'number') {
+    payload.max_budget = maxBudget;
+  }
+  if (location) {
+    payload.location = location;
+  }
+
+  const response = await api.post<BudgetEstimateResponse>(
+    '/api/ingredient-prices/estimate',
+    payload
+  );
+
+  return response.data;
 };
 
 export default api;

@@ -306,6 +306,45 @@ export interface Coupon {
   iconUrl?: string;
 }
 
+// --- Ingredient price / budget estimate types ---
+
+export interface IngredientEstimateRequestItem {
+  name: string;
+  quantity: number;
+  unit?: string;
+}
+
+export interface IngredientEstimateItem {
+  ingredient_name: string;
+  quantity: number;
+  unit?: string | null;
+
+  found: boolean;
+  message?: string;
+
+  store_name?: string;
+  store_location?: string | null;
+  price_per_unit?: number;
+  currency?: string;
+  estimated_cost?: number;
+  source_url?: string | null;
+  last_updated?: string | null;
+}
+
+export interface BudgetGoalResult {
+  max_budget: number;
+  under_budget: boolean;
+  savings: number;
+  coins_earned: number;
+}
+
+export interface BudgetEstimateResponse {
+  items: IngredientEstimateItem[];
+  total_estimated_cost: number;
+  currency: string;
+  budget_goal?: BudgetGoalResult;
+}
+
 // Mock Mode Configuration
 export interface MockConfig {
   enabled: boolean;
@@ -319,3 +358,5 @@ export interface MockConfig {
     market: boolean;
   };
 }
+
+
