@@ -362,13 +362,41 @@
   box-shadow: 0 0 8px rgba(255, 107, 107, 0.6);
 }
 
+@media (max-width: 768px) {
+  .cook-content {
+    padding: 20px 16px;
+  }
+
+  .step-text {
+    font-size: 16px;
+  }
+
+  .timer-time {
+    font-size: 40px;
+  }
+
+  .cook-footer {
+    padding: 16px;
+  }
+
+  .nav-btn {
+    padding: 12px 20px;
+    font-size: 15px;
+  }
+
+  .nav-btn.prev span {
+    display: none;
+  }
+}
+
+/* Budget Panel Styles */
 .cook-budget-panel {
   margin-bottom: 1.5rem;
   padding: 1rem 1.25rem;
   border-radius: 12px;
   border: 1px solid rgba(0,0,0,0.06);
   background: #fff8e6;
-  color: #111827; /* dark gray text */
+  color: #111827;
 }
 
 .cook-budget-title {
@@ -408,31 +436,4 @@
 .cook-budget-button:disabled {
   opacity: 0.6;
   cursor: wait;
-}
-
-@media (max-width: 768px) {
-  .cook-content {
-    padding: 20px 16px;
-  }
-
-  .step-text {
-    font-size: 16px;
-  }
-
-  .timer-time {
-    font-size: 40px;
-  }
-
-  .cook-footer {
-    padding: 16px;
-  }
-
-  .nav-btn {
-    padding: 12px 20px;
-    font-size: 15px;
-  }
-
-  .nav-btn.prev span {
-    display: none;
-  }
 }

@@ -288,3 +288,16 @@
   transform: scale(1.05);
   box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
 }
+
+/* Squad Button */
+.squad-btn {
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.2) 0%, rgba(118, 75, 162, 0.2) 100%);
+  border: 1px solid rgba(102, 126, 234, 0.3);
+  color: #667eea !important;
+}
+
+.squad-btn:hover {
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.3) 0%, rgba(118, 75, 162, 0.3) 100%);
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+}
