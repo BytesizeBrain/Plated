@@ -16,6 +16,8 @@ const SavedPostsPage = lazy(() => import('./pages/SavedPostsPage'));
 const ChallengesPage = lazy(() => import('./pages/challenges/ChallengesPage'));
 const CookModePage = lazy(() => import('./pages/cook/CookModePage'));
 const CreatePostPage = lazy(() => import('./pages/CreatePostPage'));
+const ProofPage = lazy(() => import('./pages/cook/ProofPage'));
+
 
 // Loading component
 function PageLoader() {
@@ -44,6 +46,7 @@ function App() {
           <Route path="/saved" element={<SavedPostsPage />} />
           <Route path="/challenges" element={<ChallengesPage />} />
           <Route path="/cook/:challengeId" element={<CookModePage />} />
+          <Route path="/proof/:challengeId" element={<ProofPage />} />
         </Routes>
       </Suspense>
     </Router>

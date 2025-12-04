@@ -10,6 +10,63 @@ import type {
 
 import './CookModePage.css';
 
+function normalizeIngredientName(raw: string): string {
+  const lower = raw.toLowerCase();
+
+  // Carbonara
+  if (lower.includes('spaghetti')) return 'spaghetti';
+  if (lower.includes('pancetta') || lower.includes('guanciale')) return 'pancetta';
+  if (lower.includes('pecorino')) return 'pecorino romano cheese';
+  if (lower.includes('egg')) return 'egg';
+  if (lower.includes('black pepper')) return 'black pepper';
+  if (lower === 'salt' || lower.includes('salt')) return 'salt';
+
+  // Soufflé
+  if (lower.includes('dark chocolate') || lower.includes('chocolate')) return 'dark chocolate';
+  if (lower.includes('butter')) return 'butter';
+  if (lower.includes('sugar')) return 'sugar';
+  if (lower.includes('flour')) return 'flour';
+  if (lower.includes('cocoa powder')) return 'cocoa powder';
+
+  // Stir-fry / Kung Pao
+  if (lower.includes('chicken')) return 'chicken breast';
+  if (lower.includes('bell pepper')) return 'bell pepper';
+  if (lower.includes('peanut')) return 'peanuts';
+  if (lower.includes('garlic')) return 'garlic';
+  if (lower.includes('dried chili')) return 'dried chili';
+  if (lower.includes('soy sauce')) return 'soy sauce';
+  if (lower.includes('rice vinegar')) return 'rice vinegar';
+  if (lower.includes('cornstarch')) return 'cornstarch';
+  if (lower.includes('green onion')) return 'green onion';
+
+  // Sourdough
+  if (lower.includes('bread flour')) return 'bread flour';
+  if (lower === 'water' || lower.includes('water')) return 'water';
+  if (lower.includes('starter')) return 'sourdough starter';
+  if (lower === 'salt' || lower.includes('salt')) return 'table salt';
+
+  // Açaí bowl
+  if (lower.includes('açaí') || lower.includes('acai')) return 'frozen acai';
+  if (lower.includes('banana')) return 'banana';
+  if (lower.includes('berries')) return 'berries';
+  if (lower.includes('almond milk')) return 'almond milk';
+  if (lower.includes('granola')) return 'granola';
+  if (lower.includes('honey')) return 'honey';
+  if (lower.includes('coconut')) return 'shredded coconut';
+
+  // Roast turkey
+  if (lower.includes('turkey')) return 'turkey';
+  if (lower.includes('herb')) return 'fresh herbs mix';
+  if (lower.includes('onion')) return 'onion';
+  if (lower.includes('carrot')) return 'carrot';
+  if (lower.includes('celery')) return 'celery stalk';
+  if (lower.includes('chicken stock')) return 'chicken stock';
+
+  // fallback – send the raw string
+  return raw;
+}
+
+
 function CookModePage() {
   const { challengeId } = useParams<{ challengeId: string }>();
   const navigate = useNavigate();
@@ -95,44 +152,36 @@ function CookModePage() {
   const progress = ((currentStepIndex + 1) / steps.length) * 100;
 
   // Build ingredient request items for backend
-  type RecipeIngredientObject = {
-    item?: string;
-    name?: string;
-    amount?: string;
-    unit?: string;
-  };
-
   function buildIngredientRequestItems(): IngredientEstimateRequestItem[] {
-    const raw = challenge?.recipe?.ingredients as (string | RecipeIngredientObject)[] | undefined;
-
-    if (!raw || raw.length === 0) {
+    if (!challenge?.recipe?.ingredients || challenge.recipe.ingredients.length === 0) {
       return [];
     }
 
-    return raw
-      .map((ing) => {
-        // Case 1: simple string ingredient like "chicken breast"
-        if (typeof ing === 'string') {
-          return {
-            name: ing,
-            quantity: 1,
-          };
-        }
+    // Treat ingredients as either plain strings or small objects
+    const ingredients = challenge.recipe
+      .ingredients as (string | { item?: string; name?: string; amount?: string; unit?: string })[];
 
-        // Case 2: object ingredient: { item?: string; name?: string; unit?: string; ... }
-        const name = (ing.item || ing.name || '').trim();
-        if (!name) {
-          return null; // skip if we can't find a usable name
-        }
+    return ingredients.map((raw) => {
+      let rawName: string;
 
-        return {
-          name,
-          quantity: 1,
-          unit: ing.unit,
-        };
-      })
-      .filter((x): x is IngredientEstimateRequestItem => x !== null);
+      if (typeof raw === 'string') {
+        // Our current mock data uses strings like "200g spaghetti"
+        rawName = raw;
+      } else {
+        // Future-proofing in case we switch to structured ingredients
+        rawName = raw.item || raw.name || '';
+      }
+
+      const name = normalizeIngredientName(rawName);
+
+      return {
+        name,
+        quantity: 1, // TODO: later parse numbers from "200g", "1 cup", etc.
+        // unit is optional; backend mainly matches on `name`
+      };
+    });
   }
+
 
   // Handle budget estimation
   const handleEstimateBudget = async () => {
