@@ -175,7 +175,18 @@ export const getUserProfile = async (): Promise<UserProfile> => {
   // are propagated to the caller (Register page) instead of falling back to mock data.
   try {
     const response = await api.get<UserProfile>('/profile');
-    return response.data;
+    const profile = response.data;
+
+    // Persist user_id for gamification features (e.g., skill tracks, recipe completion)
+    try {
+      if (typeof window !== 'undefined' && window.localStorage) {
+        window.localStorage.setItem('user_id', profile.id);
+      }
+    } catch {
+      // Ignore localStorage errors
+    }
+
+    return profile;
   } catch (error) {
     // If it's a 404, it means the user is not registered yet. 
     // We MUST throw this so the Register page knows to show the form.
@@ -186,7 +197,17 @@ export const getUserProfile = async (): Promise<UserProfile> => {
     // For other errors (network, 500s), we can fall back to mock data 
     // to allow the app to function in "demo" mode or when backend is down.
     console.warn(`⚠️ User Profile: Backend unavailable or error, using mock data fallback`);
-    return mockCurrentUser;
+    const profile = mockCurrentUser;
+
+    try {
+      if (typeof window !== 'undefined' && window.localStorage) {
+        window.localStorage.setItem('user_id', profile.id);
+      }
+    } catch {
+      // Ignore localStorage errors
+    }
+
+    return profile;
   }
 };
 

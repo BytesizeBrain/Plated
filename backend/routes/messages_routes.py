@@ -52,7 +52,7 @@ def create_conversation():
         return jsonify({"conversation_id": convo_id, "created": True}), 201
 
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        return jsonify({"error": "An internal error occurred"}), 500
 
 @messages_bp.route("/conversations/<conversation_id>/messages", methods=["POST"])
 def send_message(conversation_id):
@@ -91,7 +91,7 @@ def send_message(conversation_id):
         return jsonify(message_res.data[0]), 201
 
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        return jsonify({"error": "An internal error occurred"}), 500
 
 @messages_bp.route("/conversations/<conversation_id>/messages", methods=["GET"])
 def get_messages(conversation_id):
@@ -130,7 +130,7 @@ def get_messages(conversation_id):
         }), 200
 
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        return jsonify({"error": "An internal error occurred"}), 500
 
 @messages_bp.route("/conversations", methods=["GET"])
 def get_user_conversations():
@@ -212,7 +212,7 @@ def get_user_conversations():
         return jsonify({"conversations": conversations}), 200
 
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        return jsonify({"error": "An internal error occurred"}), 500
 
 @messages_bp.route("/conversations/<conversation_id>/read", methods=["POST"])
 def mark_conversation_read(conversation_id):
@@ -233,4 +233,4 @@ def mark_conversation_read(conversation_id):
         return jsonify({"message": "Marked as read"}), 200
 
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        return jsonify({"error": "An internal error occurred"}), 500
