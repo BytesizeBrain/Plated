@@ -1,0 +1,185 @@
+
+.proof-page {
+  min-height: 100vh;
+  padding: 3rem 1.5rem 4rem;
+  background: radial-gradient(circle at top left, #3b82f6 0, #020617 45%);
+  color: #f9fafb;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.proof-hero {
+  max-width: 720px;
+  margin: 0 auto;
+  text-align: left;
+}
+
+.proof-hero h1 {
+  font-size: clamp(2rem, 3vw, 2.6rem);
+  margin: 0.75rem 0 0.5rem;
+}
+
+.proof-hero p {
+  margin: 0;
+  color: #e5e7eb;
+  line-height: 1.5;
+}
+
+.proof-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.75rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  background: rgba(15, 23, 42, 0.8);
+  border: 1px solid rgba(148, 163, 184, 0.5);
+}
+
+/* Layout */
+.proof-grid {
+  max-width: 1080px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 1.1fr);
+  gap: 1.75rem;
+}
+
+@media (max-width: 900px) {
+  .proof-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.proof-card {
+  background: rgba(15, 23, 42, 0.9);
+  border-radius: 1.25rem;
+  padding: 1.75rem;
+  box-shadow: 0 18px 45px rgba(15, 23, 42, 0.85);
+  border: 1px solid rgba(148, 163, 184, 0.4);
+}
+
+/* Rewards */
+.rewards-card h2,
+.proof-inputs h2 {
+  margin-top: 0;
+  margin-bottom: 1.25rem;
+  font-size: 1.25rem;
+}
+
+.proof-reward-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.proof-reward-box {
+  flex: 1 1 90px;
+  min-width: 96px;
+  background: linear-gradient(135deg, #4f46e5, #ec4899);
+  border-radius: 1rem;
+  padding: 0.9rem 1rem;
+  text-align: center;
+  color: white;
+}
+
+.proof-reward-box .icon {
+  font-size: 1.3rem;
+  margin-bottom: 0.25rem;
+}
+
+.proof-reward-box .value {
+  font-size: 1.4rem;
+  font-weight: 700;
+}
+
+.proof-reward-box .label {
+  font-size: 0.75rem;
+  opacity: 0.85;
+}
+
+.proof-current-stats {
+  margin-top: 1.25rem;
+  font-size: 0.9rem;
+  color: #e5e7eb;
+}
+
+/* Proof inputs */
+.proof-input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 1.1rem;
+}
+
+.proof-input-group label {
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.proof-upload-placeholder {
+  border-radius: 0.9rem;
+  border: 1px dashed rgba(148, 163, 184, 0.7);
+  padding: 1.25rem;
+  font-size: 0.85rem;
+  color: #94a3b8;
+  background: rgba(15, 23, 42, 0.8);
+}
+
+.proof-notes {
+  width: 100%;
+  min-height: 110px;
+  resize: vertical;
+  border-radius: 0.9rem;
+  border: 1px solid rgba(148, 163, 184, 0.7);
+  background: rgba(15, 23, 42, 0.8);
+  color: #e5e7eb;
+  padding: 0.75rem 0.9rem;
+  font-size: 0.9rem;
+}
+
+.proof-notes:disabled {
+  opacity: 0.7;
+}
+
+.disabled-hint {
+  font-size: 0.75rem;
+  color: #9ca3af;
+}
+
+.proof-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 0.75rem;
+}
+
+/* Buttons */
+.proof-primary-btn,
+.proof-secondary-btn {
+  border-radius: 999px;
+  padding: 0.55rem 1.4rem;
+  border: none;
+  font-size: 0.9rem;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.proof-primary-btn {
+  background: linear-gradient(135deg, #8b5cf6, #ec4899);
+  color: white;
+}
+
+.proof-secondary-btn {
+  background: rgba(15, 23, 42, 0.9);
+  color: #e5e7eb;
+  border: 1px solid rgba(148, 163, 184, 0.7);
+}
+
+.proof-primary-btn:hover,
+.proof-secondary-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 12px 25px rgba(15, 23, 42, 0.6);
+}

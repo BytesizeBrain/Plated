@@ -42,6 +42,19 @@ export interface ApiError {
 }
 
 // Feed Types
+export interface RecipeData {
+  title?: string;
+  prep_time?: number;
+  cook_time?: number;
+  cooking_time?: number; // legacy field name
+  servings?: number;
+  difficulty?: 'easy' | 'medium' | 'hard' | string;
+  cuisine?: string;
+  ingredients?: (string | { item?: string; name?: string; amount?: string; unit?: string })[];
+  instructions?: (string | { step?: string; text?: string })[];
+  tags?: string[];
+}
+
 export interface FeedPost {
   id: string;
   user_id: string;
@@ -54,15 +67,7 @@ export interface FeedPost {
   description?: string;
   media_url?: string;
   media_type?: 'image' | 'video';
-  recipe_data?: {
-    cooking_time?: number;
-    prep_time?: number;  // May come from backend before transformation
-    cook_time?: number;  // May come from backend before transformation
-    difficulty?: 'easy' | 'medium' | 'hard';
-    servings?: number;
-    ingredients?: string[];
-    instructions?: string[];
-  };
+  recipe_data?: RecipeData;
   likes_count: number;
   comments_count: number;
   views_count: number;
@@ -301,8 +306,47 @@ export interface Coupon {
   iconUrl?: string;
 }
 
+// --- Ingredient price / budget estimate types ---
+
+export interface IngredientEstimateRequestItem {
+  name: string;
+  quantity: number;
+  unit?: string;
+}
+
+export interface IngredientEstimateItem {
+  ingredient_name: string;
+  quantity: number;
+  unit?: string | null;
+
+  found: boolean;
+  message?: string;
+
+  store_name?: string;
+  store_location?: string | null;
+  price_per_unit?: number;
+  currency?: string;
+  estimated_cost?: number;
+  source_url?: string | null;
+  last_updated?: string | null;
+}
+
+export interface BudgetGoalResult {
+  max_budget: number;
+  under_budget: boolean;
+  savings: number;
+  coins_earned: number;
+}
+
+export interface BudgetEstimateResponse {
+  items: IngredientEstimateItem[];
+  total_estimated_cost: number;
+  currency: string;
+  budget_goal?: BudgetGoalResult;
+}
+
 // ============================================================================
-// NEW GAMIFICATION TYPES - Recipe Completion & Skill Tracks
+// Recipe Completion & Skill Tracks Types
 // ============================================================================
 
 // Recipe Completion (Cooked-It Chain)
@@ -311,24 +355,24 @@ export interface RecipeCompletionUser {
   username: string;
   avatarUrl?: string;
   createdAt: string;
-  hasProof?: boolean;       // Whether this completion has verified proof
-  proofImageUrl?: string;   // Thumbnail of proof image
+  hasProof?: boolean;
+  proofImageUrl?: string;
 }
 
 export interface RecipeCompletionResponse {
   count: number;
   users: RecipeCompletionUser[];
   recipeId: string;
-  proofCount?: number;      // Number of completions with verified proof
+  proofCount?: number;
 }
 
 export interface CompleteRecipeResponse {
-  reward: number;           // Total coins earned
-  creator_bonus: number;    // Bonus given to creator
-  chaos_bonus: number;      // Bonus from daily ingredient
-  xp_gained: number;        // XP earned
-  level_up: boolean;        // Whether user leveled up
-  proof_bonus?: number;     // Bonus for submitting proof
+  reward: number;
+  creator_bonus: number;
+  chaos_bonus: number;
+  xp_gained: number;
+  level_up: boolean;
+  proof_bonus?: number;
 }
 
 // Proof-of-Cook Types
@@ -371,19 +415,19 @@ export interface ProofStats {
 // Daily Chaos Ingredient
 export interface DailyIngredient {
   active: boolean;
-  ingredient?: string;      // e.g., "eggs", "chicken"
-  multiplier?: number;      // e.g., 2.0 for 2x coins
-  date?: string;            // ISO date string
-  icon_emoji?: string;      // e.g., "🥚"
+  ingredient?: string;
+  multiplier?: number;
+  date?: string;
+  icon_emoji?: string;
 }
 
 // Skill Tracks
 export interface SkillTrack {
   id: string;
-  slug: string;             // e.g., "microwave-master"
-  name: string;             // e.g., "Microwave Master"
+  slug: string;
+  name: string;
   description?: string;
-  icon?: string;            // Emoji or icon identifier
+  icon?: string;
   totalRecipes: number;
   completedRecipes: number;
   completedAt?: string | null;
@@ -393,9 +437,9 @@ export interface SkillTrack {
 export interface CoinTransaction {
   id: string;
   user_id: string;
-  amount: number;           // Positive = earned, negative = spent
-  reason: string;           // e.g., "recipe_completion", "creator_bonus"
-  metadata?: Record<string, any>;
+  amount: number;
+  reason: string;
+  metadata?: Record<string, unknown>;
   created_at: string;
 }
 
@@ -403,7 +447,7 @@ export interface CoinTransaction {
 export interface RecipeIngredientTag {
   id: string;
   recipe_id: string;
-  ingredient: string;       // Lowercase ingredient name
+  ingredient: string;
   created_at: string;
 }
 
@@ -422,3 +466,5 @@ export interface MockConfig {
     market: boolean;
   };
 }
+
+

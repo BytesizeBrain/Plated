@@ -17,6 +17,7 @@ const SavedPostsPage = lazy(() => import('./pages/SavedPostsPage'));
 const ChallengesPage = lazy(() => import('./pages/challenges/ChallengesPage'));
 const CookModePage = lazy(() => import('./pages/cook/CookModePage'));
 const CreatePostPage = lazy(() => import('./pages/CreatePostPage'));
+const ProofPage = lazy(() => import('./pages/cook/ProofPage'));
 const SquadPage = lazy(() => import('./pages/squad/SquadPage'));
 const StorePage = lazy(() => import('./pages/store/StorePage'));
 
@@ -48,6 +49,7 @@ function App() {
           <Route path="/challenges" element={<ChallengesPage />} />
           <Route path="/tracks" element={<SkillTracksPage />} />
           <Route path="/cook/:challengeId" element={<CookModePage />} />
+          <Route path="/proof/:challengeId" element={<ProofPage />} />
           <Route path="/squad" element={<SquadPage />} />
           <Route path="/store" element={<StorePage />} />
         </Routes>

@@ -388,3 +388,52 @@
     display: none;
   }
 }
+
+/* Budget Panel Styles */
+.cook-budget-panel {
+  margin-bottom: 1.5rem;
+  padding: 1rem 1.25rem;
+  border-radius: 12px;
+  border: 1px solid rgba(0,0,0,0.06);
+  background: #fff8e6;
+  color: #111827;
+}
+
+.cook-budget-title {
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+}
+
+.cook-budget-controls {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  align-items: flex-end;
+}
+
+.cook-budget-label {
+  display: flex;
+  flex-direction: column;
+  font-size: 0.9rem;
+}
+
+.cook-budget-input {
+  margin-top: 0.25rem;
+  padding: 0.45rem 0.7rem;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+}
+
+.cook-budget-button {
+  padding: 0.5rem 1rem;
+  border-radius: 999px;
+  background: #ffb347;
+  color: #42210b;
+  border: none;
+  cursor: pointer;
+}
+
+.cook-budget-button:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}

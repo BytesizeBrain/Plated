@@ -11,7 +11,8 @@ from routes.social_routes import social_bp
 from routes.messages_routes import messages_bp
 from routes.gamification_routes import gamification_bp
 from routes.squad_routes import squad_bp
-from routes.proof_routes import proof_bp   
+from routes.proof_routes import proof_bp
+from routes.ingredient_prices_routes import ingredient_prices_bp
 
 # Configure ProxyFix for Nginx (only in production)
 if os.getenv('FLASK_ENV') == 'production':
@@ -37,6 +38,7 @@ app.register_blueprint(messages_bp, url_prefix='/api')
 app.register_blueprint(gamification_bp, url_prefix='/api')
 app.register_blueprint(squad_bp, url_prefix='/api')
 app.register_blueprint(proof_bp, url_prefix='/api')
+app.register_blueprint(ingredient_prices_bp, url_prefix='/api')  # Ingredient prices routes
 
 @app.route('/health')
 def health():
@@ -52,6 +54,8 @@ def index():
             "profile": "/profile",
             "posts": "/posts",
             "feed": "/feed",
+            "ingredient_prices": "/api/ingredient-prices/ingredient",
+            "estimate_cost": "/api/ingredient-prices/estimate"
         }
     }, 200
 

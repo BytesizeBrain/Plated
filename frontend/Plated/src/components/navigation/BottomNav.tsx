@@ -7,7 +7,7 @@ function BottomNav() {
   const navigate = useNavigate();
   const location = useLocation();
   const { unreadCount } = useMessageStore();
-  const { skillTracks } = useGamificationStore();
+  const { skillTracks, activeChallenges } = useGamificationStore();
   const activeTrackCount = skillTracks.filter((track) => !track.completedAt).length;
 
   const isActive = (path: string) => {
@@ -20,8 +20,14 @@ function BottomNav() {
     if (path === '/squad') {
       return location.pathname === '/squad';
     }
+    if (path === '/challenges') {
+      return location.pathname === '/challenges';
+    }
     if (path === '/messages') {
       return location.pathname.startsWith('/messages');
+    }
+    if (path === '/profile') {
+      return location.pathname === '/profile';
     }
     return false;
   };
@@ -53,6 +59,35 @@ function BottomNav() {
       </button>
 
       <button
+        className={`bottom-nav-btn ${isActive('/challenges') ? 'active' : ''}`}
+        onClick={() => navigate('/challenges')}
+        aria-label="Challenges"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="24"
+          height="24"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"></path>
+          <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"></path>
+          <path d="M4 22h16"></path>
+          <path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"></path>
+          <path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"></path>
+          <path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"></path>
+        </svg>
+        <span>Challenges</span>
+        {activeChallenges.length > 0 && (
+          <span className="nav-badge">{activeChallenges.length}</span>
+        )}
+      </button>
+
+      <button
         className={`bottom-nav-btn ${isActive('/squad') ? 'active' : ''}`}
         onClick={() => navigate('/squad')}
         aria-label="Squad"
@@ -74,33 +109,6 @@ function BottomNav() {
           <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
         </svg>
         <span>Squad</span>
-      </button>
-
-      <button
-        className={`bottom-nav-btn ${isActive('/tracks') ? 'active' : ''}`}
-        onClick={() => navigate('/tracks')}
-        aria-label="Tracks"
-      >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="24"
-          height="24"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        >
-          <path d="M4 19c2-3 4-5 8-5s6 2 8 5"></path>
-          <circle cx="12" cy="7" r="3"></circle>
-          <path d="M12 10v4"></path>
-          <path d="M9 22h6"></path>
-        </svg>
-        <span>Tracks</span>
-        {activeTrackCount > 0 && (
-          <span className="nav-badge">{activeTrackCount}</span>
-        )}
       </button>
 
       <button
@@ -126,10 +134,30 @@ function BottomNav() {
           <span className="nav-badge unread">{unreadCount > 99 ? '99+' : unreadCount}</span>
         )}
       </button>
+
+      <button
+        className={`bottom-nav-btn ${isActive('/profile') ? 'active' : ''}`}
+        onClick={() => navigate('/profile')}
+        aria-label="Profile"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="24"
+          height="24"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+          <circle cx="12" cy="7" r="4"></circle>
+        </svg>
+        <span>Profile</span>
+      </button>
     </nav>
   );
 }
 
 export default BottomNav;
-
-
