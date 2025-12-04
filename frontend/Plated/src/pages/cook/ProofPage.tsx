@@ -1,95 +1,121 @@
-import { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+// src/pages/cook/ProofPage.tsx
+import { useNavigate, useParams } from 'react-router-dom';
 import { useGamificationStore } from '../../stores/gamificationStore';
-import { getChallenge } from '../../utils/api';
-import type { Challenge } from '../../types';
-import './CookModePage.css'; // or your own ProofPage CSS
+import './ProofPage.css';
 
 function ProofPage() {
   const { challengeId } = useParams<{ challengeId: string }>();
   const navigate = useNavigate();
-  const { challenges } = useGamificationStore();
+  const { challenges, rewards } = useGamificationStore();
 
-  const [challenge, setChallenge] = useState<Challenge | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const challenge = challenges.find((c) => c.id === challengeId);
 
-  useEffect(() => {
-    const loadChallenge = async () => {
-      if (!challengeId) {
-        setError('No challenge selected.');
-        setIsLoading(false);
-        return;
-      }
-
-      // try store first
-      const existing = challenges.find(c => c.id === challengeId);
-      if (existing) {
-        setChallenge(existing);
-        setIsLoading(false);
-        return;
-      }
-
-      try {
-        const data = await getChallenge(challengeId);
-        if (!data) {
-          setError('Challenge not found.');
-        } else {
-          setChallenge(data);
-        }
-      } catch (err) {
-        console.error('Error loading challenge for proof page:', err);
-        setError('Unable to load challenge details.');
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    loadChallenge();
-  }, [challengeId, challenges]);
-
-  if (isLoading) {
+  if (!challenge) {
     return (
-      <div className="cook-mode-page">
-        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
-          <p>Loading proof screen…</p>
+      <div className="proof-page">
+        <div className="proof-card">
+          <h1>Challenge not found</h1>
+          <p>We couldn’t find this cooking challenge. Try starting again from the challenges page.</p>
+          <button
+            className="proof-primary-btn"
+            onClick={() => navigate('/challenges')}
+          >
+            Back to challenges
+          </button>
         </div>
       </div>
     );
   }
 
-  if (error || !challenge) {
-    return (
-      <div className="cook-mode-page" style={{ padding: '2rem', color: 'white' }}>
-        <h1>Proof submission</h1>
-        <p>{error || 'Challenge data unavailable.'}</p>
-        <button
-          onClick={() => navigate('/challenges')}
-          style={{ marginTop: '1rem', padding: '0.5rem 1rem', borderRadius: 8 }}
-        >
-          Back to challenges
-        </button>
-      </div>
-    );
-  }
+  const baseRewards = challenge.rewards;
+  const xp = baseRewards?.xp ?? 0;
+  const coins = baseRewards?.coins ?? 0;
+  const badgeCount = baseRewards?.badges?.length ?? 0;
 
   return (
-    <div className="cook-mode-page">
-      <main className="cook-content">
-        <h1>{challenge.recipe?.title || challenge.title}</h1>
-        <p>🎉 Great job finishing the cook session!</p>
+    <div className="proof-page">
+      <div className="proof-hero">
+        <span className="proof-pill">Challenge complete</span>
+        <h1>{challenge.recipe?.title ?? challenge.title}</h1>
         <p>
-          This is where we’ll ask for your proof photos / notes and show the coins / XP you earned
-          (wired to the backend later).
+          🎉 Great job finishing this cook session!
+          <br />
+          This is where you’ll upload your proof pics / notes and see your rewards.
         </p>
+      </div>
 
-        <button
-          onClick={() => navigate('/challenges')}
-          style={{ marginTop: '1.5rem', padding: '0.75rem 1.5rem', borderRadius: 10 }}
-        >
-          Back to challenges
-        </button>
-      </main>
+      <div className="proof-grid">
+        {/* Left: Rewards summary */}
+        <section className="proof-card rewards-card">
+          <h2>Your rewards for this challenge</h2>
+          <div className="proof-reward-row">
+            <div className="proof-reward-box">
+              <div className="icon">⭐</div>
+              <div className="value">{xp}</div>
+              <div className="label">XP</div>
+            </div>
+            <div className="proof-reward-box">
+              <div className="icon">🪙</div>
+              <div className="value">{coins}</div>
+              <div className="label">Coins</div>
+            </div>
+            <div className="proof-reward-box">
+              <div className="icon">🏆</div>
+              <div className="value">{badgeCount}</div>
+              <div className="label">Badges (potential)</div>
+            </div>
+          </div>
+
+          {rewards && (
+            <div className="proof-current-stats">
+              <p>
+                You’re currently <strong>Level {rewards.level}</strong> with{' '}
+                <strong>{rewards.xp}</strong> XP and{' '}
+                <strong>{rewards.coins}</strong> coins in your wallet.
+              </p>
+            </div>
+          )}
+        </section>
+
+        {/* Right: “Proof” placeholders */}
+        <section className="proof-card proof-inputs">
+          <h2>Proof & Notes (coming soon)</h2>
+
+          <div className="proof-input-group">
+            <label>Upload your cook photos</label>
+            <div className="proof-upload-placeholder">
+              <span>📸 Drag & drop or click to upload (future feature)</span>
+            </div>
+          </div>
+
+          <div className="proof-input-group">
+            <label>How did it go?</label>
+            <textarea
+              className="proof-notes"
+              placeholder="Write a quick note to your future self: what worked, what you’d tweak next time…"
+              disabled
+            />
+            <small className="disabled-hint">
+              (Read-only mock for now – this will be wired to the backend later.)
+            </small>
+          </div>
+
+          <div className="proof-actions">
+            <button
+              className="proof-secondary-btn"
+              onClick={() => navigate(`/cook/${challenge.id}`)}
+            >
+              View steps again
+            </button>
+            <button
+              className="proof-primary-btn"
+              onClick={() => navigate('/challenges')}
+            >
+              Back to challenges
+            </button>
+          </div>
+        </section>
+      </div>
     </div>
   );
 }

@@ -87,7 +87,12 @@ export const useGamificationStore = create<GamificationState>((set) => ({
   error: null,
 
   // Challenge actions
-  setChallenges: (challenges) => set({ challenges }),
+  setChallenges: (challenges) =>
+    set({
+      challenges,
+      // auto-populate activeChallenges any time we load/set challenges
+      activeChallenges: challenges.filter((c) => c.status === 'in_progress'),
+    }),
 
   setActiveChallenges: (activeChallenges) => set({ activeChallenges }),
 
