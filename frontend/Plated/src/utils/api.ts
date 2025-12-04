@@ -530,25 +530,31 @@ export const getOrCreateConversation = async (userId: string): Promise<Conversat
 
 /**
  * Get all available challenges
- * Falls back to mock data if backend is unavailable
+ * Try backend first, but ALWAYS fall back to mockChallenges on error or empty response.
  */
 export const getChallenges = async (): Promise<Challenge[]> => {
-  return withFallback(
-    async () => {
-      const response = await api.get<{ challenges: Challenge[] } | Challenge[]>('/api/challenges');
-      // Handle both formats: { challenges: [...] } or just [...]
-      const data = response.data;
-      if (Array.isArray(data)) {
-        return data;
-      }
-      if (data && typeof data === 'object' && 'challenges' in data) {
-        return data.challenges;
-      }
-      return [];
-    },
-    mockChallenges,
-    'Challenges'
-  );
+  try {
+    const response = await api.get<{ challenges: Challenge[] } | Challenge[]>('/api/challenges');
+    const data = response.data;
+
+    let challenges: Challenge[] = [];
+    if (Array.isArray(data)) {
+      challenges = data;
+    } else if (data && typeof data === 'object' && 'challenges' in data) {
+      challenges = (data as { challenges: Challenge[] }).challenges || [];
+    }
+
+    if (!challenges || challenges.length === 0) {
+      console.warn('getChallenges: backend empty/invalid, using mockChallenges');
+      return mockChallenges;
+    }
+
+    console.log('✅ getChallenges: using backend data');
+    return challenges;
+  } catch (error) {
+    console.warn('getChallenges: error, using mockChallenges fallback', error);
+    return mockChallenges;
+  }
 };
 
 /**
@@ -599,17 +605,24 @@ export const getChallenge = async (challengeId: string): Promise<Challenge | nul
 
 /**
  * Get user's rewards summary (XP, coins, badges, streak)
- * Falls back to mock data if backend is unavailable
+ * Try backend first, but ALWAYS fall back to mockRewardsSummary on error.
  */
 export const getRewardsSummary = async (): Promise<RewardSummary> => {
-  return withFallback(
-    async () => {
-      const response = await api.get<RewardSummary>('/api/rewards/summary');
-      return response.data;
-    },
-    mockRewardsSummary,
-    'Rewards Summary'
-  );
+  try {
+    const response = await api.get<RewardSummary>('/api/rewards/summary');
+    const data = response.data;
+
+    if (!data || typeof data !== 'object') {
+      console.warn('getRewardsSummary: backend empty/invalid, using mockRewardsSummary');
+      return mockRewardsSummary;
+    }
+
+    console.log('✅ getRewardsSummary: using backend data');
+    return data;
+  } catch (error) {
+    console.warn('getRewardsSummary: error, using mockRewardsSummary fallback', error);
+    return mockRewardsSummary;
+  }
 };
 
 /**

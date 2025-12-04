@@ -34,6 +34,7 @@ interface GamificationState {
   setActiveChallenges: (challenges: Challenge[]) => void;
   updateChallenge: (challengeId: string, updates: Partial<Challenge>) => void;
   startChallenge: (challengeId: string) => void;
+  completeChallenge: (challengeId: string) => void;
 
   // Actions - Cook Session
   setCurrentSession: (session: CookSession | null) => void;
@@ -99,17 +100,44 @@ export const useGamificationStore = create<GamificationState>((set) => ({
     ),
   })),
 
-  startChallenge: (challengeId) => set((state) => {
-    const challenge = state.challenges.find((c) => c.id === challengeId);
-    if (!challenge) return state;
+  startChallenge: (challengeId) =>
+    set((state) => {
+      const updatedChallenges = state.challenges.map((c) =>
+        c.id === challengeId
+          ? {
+              ...c,
+              status: 'in_progress' as const,
+              startedAt: c.startedAt ?? new Date().toISOString(),
+            }
+          : c
+      );
 
-    return {
-      challenges: state.challenges.map((c) =>
-        c.id === challengeId ? { ...c, status: 'in_progress' as const, startedAt: new Date().toISOString() } : c
-      ),
-      activeChallenges: [...state.activeChallenges, { ...challenge, status: 'in_progress' as const }],
-    };
-  }),
+      return {
+        challenges: updatedChallenges,
+        activeChallenges: updatedChallenges.filter(
+          (c) => c.status === 'in_progress'
+        ),
+      };
+    }),
+  completeChallenge: (challengeId) =>
+    set((state) => {
+      const updatedChallenges = state.challenges.map((c) =>
+        c.id === challengeId
+          ? {
+              ...c,
+              status: 'completed' as const,
+              progress: 1,
+            }
+          : c
+      );
+
+      return {
+        challenges: updatedChallenges,
+        activeChallenges: updatedChallenges.filter(
+          (c) => c.status === 'in_progress'
+        ),
+      };
+    }),
 
   // Cook session actions
   setCurrentSession: (session) => set({ currentSession: session }),
