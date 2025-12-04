@@ -197,7 +197,7 @@ def get_squads_leaderboard():
         
     except Exception as e:
         logger.exception("Error fetching squads leaderboard")
-        return jsonify({"error": str(e)}), 500
+        return jsonify({"error": "An internal error occurred"}), 500
 
 
 @squad_bp.route("/squads/my", methods=["GET"])
@@ -250,7 +250,7 @@ def get_my_squad():
         
     except Exception as e:
         logger.exception("Error fetching user's squad")
-        return jsonify({"error": str(e)}), 500
+        return jsonify({"error": "An internal error occurred"}), 500
 
 
 @squad_bp.route("/squads/<squad_id>", methods=["GET"])
@@ -289,7 +289,7 @@ def get_squad(squad_id):
         
     except Exception as e:
         logger.exception("Error fetching squad")
-        return jsonify({"error": str(e)}), 500
+        return jsonify({"error": "An internal error occurred"}), 500
 
 
 @squad_bp.route("/squads", methods=["POST"])
@@ -372,7 +372,7 @@ def create_squad():
         
     except Exception as e:
         logger.exception("Error creating squad")
-        return jsonify({"error": str(e)}), 500
+        return jsonify({"error": "An internal error occurred"}), 500
 
 
 @squad_bp.route("/squads/join", methods=["POST"])
@@ -447,7 +447,7 @@ def join_squad():
         
     except Exception as e:
         logger.exception("Error joining squad")
-        return jsonify({"error": str(e)}), 500
+        return jsonify({"error": "An internal error occurred"}), 500
 
 
 @squad_bp.route("/squads/leave", methods=["POST"])
@@ -500,7 +500,7 @@ def leave_squad():
         
     except Exception as e:
         logger.exception("Error leaving squad")
-        return jsonify({"error": str(e)}), 500
+        return jsonify({"error": "An internal error occurred"}), 500
 
 
 @squad_bp.route("/squads/user/<user_id>/badge", methods=["GET"])
@@ -536,4 +536,4 @@ def get_user_squad_badge(user_id):
         
     except Exception as e:
         logger.exception("Error fetching user squad badge")
-        return jsonify({"error": str(e)}), 500
+        return jsonify({"error": "An internal error occurred"}), 500

@@ -42,17 +42,36 @@ export default function LazyImage({
   const [currentSrc, setCurrentSrc] = useState(placeholderSrc);
   const imgRef = useRef<HTMLDivElement>(null);
 
-  // Generate WebP src with fallback
+  // Validate and get optimized src
   const getOptimizedSrc = useCallback((originalSrc: string) => {
-    if (originalSrc.includes('unsplash.com') || originalSrc.includes('example.com')) {
-      // For external images, try to optimize
-      return originalSrc;
+    // Validate URL to prevent security issues
+    try {
+      // Allow relative URLs (local images)
+      if (originalSrc.startsWith('/') || originalSrc.startsWith('./')) {
+        return originalSrc;
+      }
+      
+      // For absolute URLs, validate the hostname
+      const url = new URL(originalSrc);
+      const allowedHosts = ['unsplash.com', 'images.unsplash.com', 'example.com', 'api.dicebear.com'];
+      const hostname = url.hostname;
+      
+      // Check if hostname matches or is a subdomain of allowed hosts
+      const isAllowed = allowedHosts.some(allowed => 
+        hostname === allowed || hostname.endsWith('.' + allowed)
+      );
+      
+      if (isAllowed && (url.protocol === 'https:' || url.protocol === 'http:')) {
+        return originalSrc;
+      }
+      
+      // For other URLs, return fallback
+      return fallbackSrc;
+    } catch {
+      // Invalid URL, return fallback
+      return fallbackSrc;
     }
-    
-    // For local images, you could implement WebP conversion
-    // This is a placeholder for the actual implementation
-    return originalSrc;
-  }, []);
+  }, [fallbackSrc]);
 
   // Intersection Observer for lazy loading
   useEffect(() => {

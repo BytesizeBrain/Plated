@@ -207,7 +207,7 @@ def submit_proof(recipe_id):
         
     except Exception as e:
         logger.exception("Error submitting proof")
-        return jsonify({"error": str(e)}), 500
+        return jsonify({"error": "An internal error occurred"}), 500
 
 
 @proof_bp.route("/recipes/<recipe_id>/proof/stats", methods=["GET"])
@@ -257,7 +257,7 @@ def get_proof_stats(recipe_id):
         
     except Exception as e:
         logger.exception("Error fetching proof stats")
-        return jsonify({"error": str(e)}), 500
+        return jsonify({"error": "An internal error occurred"}), 500
 
 
 @proof_bp.route("/recipes/<recipe_id>/proofs", methods=["GET"])
@@ -308,7 +308,7 @@ def get_recipe_proofs(recipe_id):
         
     except Exception as e:
         logger.exception("Error fetching recipe proofs")
-        return jsonify({"error": str(e)}), 500
+        return jsonify({"error": "An internal error occurred"}), 500
 
 
 @proof_bp.route("/users/<user_id>/proofs", methods=["GET"])
@@ -348,7 +348,7 @@ def get_user_proofs(user_id):
         
     except Exception as e:
         logger.exception("Error fetching user proofs")
-        return jsonify({"error": str(e)}), 500
+        return jsonify({"error": "An internal error occurred"}), 500
 
 
 @proof_bp.route("/proof/<proof_id>/verify", methods=["POST"])
@@ -414,7 +414,7 @@ def manual_verify_proof(proof_id):
         
     except Exception as e:
         logger.exception("Error verifying proof")
-        return jsonify({"error": str(e)}), 500
+        return jsonify({"error": "An internal error occurred"}), 500
 
 
 # ============================================================================

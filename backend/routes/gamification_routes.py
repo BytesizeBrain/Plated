@@ -104,7 +104,8 @@ def get_user_gamification(user_id):
         return jsonify(result.data[0]), 200
 
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        logger.exception("Error fetching user gamification")
+        return jsonify({"error": "An internal error occurred"}), 500
 
 @gamification_bp.route("/gamification/<user_id>/xp", methods=["POST"])
 @jwt_required
@@ -176,7 +177,8 @@ def add_xp(user_id):
         }), 200
 
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        logger.exception("Error adding XP")
+        return jsonify({"error": "An internal error occurred"}), 500
 
 @gamification_bp.route("/gamification/<user_id>/coins", methods=["POST"])
 @jwt_required
@@ -218,7 +220,8 @@ def add_coins(user_id):
         return jsonify({"coins": new_coins, "coins_gained": coin_amount}), 200
 
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        logger.exception("Error adding coins")
+        return jsonify({"error": "An internal error occurred"}), 500
 
 @gamification_bp.route("/gamification/<user_id>/streak", methods=["POST"])
 @jwt_required
@@ -288,7 +291,8 @@ def update_streak(user_id):
         return jsonify({"current_streak": current_streak, "longest_streak": longest_streak}), 200
 
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        logger.exception("Error updating streak")
+        return jsonify({"error": "An internal error occurred"}), 500
 
 @gamification_bp.route("/badges", methods=["GET"])
 def get_all_badges():
@@ -298,7 +302,7 @@ def get_all_badges():
         return jsonify({"badges": result.data or []}), 200
     except Exception as e:
         logger.exception("Error fetching badges")
-        return jsonify({"error": str(e)}), 500
+        return jsonify({"error": "An internal error occurred"}), 500
 
 @gamification_bp.route("/gamification/<user_id>/badges", methods=["GET"])
 @jwt_required
@@ -328,7 +332,7 @@ def get_user_badges(user_id):
         return jsonify({"badges": badges_res.data or []}), 200
     except Exception as e:
         logger.exception("Error fetching user badges")
-        return jsonify({"error": str(e)}), 500
+        return jsonify({"error": "An internal error occurred"}), 500
 
 @gamification_bp.route("/challenges", methods=["GET"])
 @jwt_required
@@ -344,7 +348,7 @@ def get_challenges():
         return jsonify({"challenges": result.data or []}), 200
     except Exception as e:
         logger.exception("Error fetching challenges")
-        return jsonify({"error": str(e)}), 500
+        return jsonify({"error": "An internal error occurred"}), 500
 
 @gamification_bp.route("/rewards/summary", methods=["GET"])
 @jwt_required
@@ -422,7 +426,7 @@ def get_rewards_summary():
         return jsonify(summary), 200
     except Exception as e:
         logger.exception("Error fetching rewards summary")
-        return jsonify({"error": str(e)}), 500
+        return jsonify({"error": "An internal error occurred"}), 500
 
 @gamification_bp.route("/gamification/recipes/<recipe_id>/complete", methods=["POST"])
 @jwt_required
@@ -702,7 +706,7 @@ def complete_recipe(recipe_id):
 
     except Exception as e:
         logger.exception("Error completing recipe")
-        return jsonify({"error": str(e)}), 500
+        return jsonify({"error": "An internal error occurred"}), 500
 
 @gamification_bp.route("/gamification/recipes/<recipe_id>/completions", methods=["GET"])
 @jwt_required
@@ -768,7 +772,7 @@ def get_recipe_completions(recipe_id):
 
     except Exception as e:
         logger.exception("Error fetching recipe completions")
-        return jsonify({"error": str(e)}), 500
+        return jsonify({"error": "An internal error occurred"}), 500
 
 @gamification_bp.route("/gamification/daily-ingredient", methods=["GET"])
 @jwt_required
@@ -812,7 +816,7 @@ def get_daily_ingredient():
 
     except Exception as e:
         logger.exception("Error fetching daily ingredient")
-        return jsonify({"error": str(e)}), 500
+        return jsonify({"error": "An internal error occurred"}), 500
 
 @gamification_bp.route("/gamification/skill-tracks", methods=["GET"])
 @jwt_required

@@ -34,7 +34,7 @@ def follow_user(user_id):
     except Exception as e:
         if "duplicate" in str(e).lower() or "unique" in str(e).lower():
             return jsonify({"following": True, "message": "Already following"}), 200
-        return jsonify({"error": str(e)}), 500
+        return jsonify({"error": "An internal error occurred"}), 500
 
 @social_bp.route("/users/<user_id>/follow", methods=["DELETE"])
 def unfollow_user(user_id):
@@ -55,7 +55,7 @@ def unfollow_user(user_id):
         return jsonify({"following": False, "message": "User unfollowed"}), 200
 
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        return jsonify({"error": "An internal error occurred"}), 500
 
 @social_bp.route("/users/<user_id>/followers", methods=["GET"])
 def get_followers(user_id):
@@ -84,7 +84,7 @@ def get_followers(user_id):
         }), 200
 
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        return jsonify({"error": "An internal error occurred"}), 500
 
 @social_bp.route("/users/<user_id>/following", methods=["GET"])
 def get_following(user_id):
@@ -113,7 +113,7 @@ def get_following(user_id):
         }), 200
 
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        return jsonify({"error": "An internal error occurred"}), 500
 
 @social_bp.route("/users/<user_id>/following/<target_id>", methods=["GET"])
 def check_following_status(user_id, target_id):
@@ -128,7 +128,7 @@ def check_following_status(user_id, target_id):
         return jsonify({"following": len(result.data or []) > 0}), 200
 
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        return jsonify({"error": "An internal error occurred"}), 500
 
 @social_bp.route("/users/<user_id>/stats", methods=["GET"])
 def get_user_stats(user_id):
@@ -159,4 +159,4 @@ def get_user_stats(user_id):
         }), 200
 
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        return jsonify({"error": "An internal error occurred"}), 500
