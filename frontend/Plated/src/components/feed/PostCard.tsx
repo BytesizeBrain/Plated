@@ -1,9 +1,8 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { formatDistanceToNow } from 'date-fns';
 import type { FeedPost } from '../../types';
 import PostEngagement from './PostEngagement';
 import CommentSection from './CommentSection';
-import { RecipeActions } from '../gamification/RecipeActions';
 import './PostCard.css';
 
 interface PostCardProps {
@@ -14,20 +13,6 @@ function PostCard({ post }: PostCardProps) {
   const [showComments, setShowComments] = useState(false);
   const [showRecipe, setShowRecipe] = useState(false);
   const [likeAnimation, setLikeAnimation] = useState(false);
-  const [userId, setUserId] = useState<string | null>(null);
-
-  useEffect(() => {
-    try {
-      if (typeof window !== 'undefined' && window.localStorage) {
-        const storedUserId = window.localStorage.getItem('user_id');
-        if (storedUserId) {
-          setUserId(storedUserId);
-        }
-      }
-    } catch {
-      // Ignore localStorage errors
-    }
-  }, []);
 
   const handleDoubleClick = () => {
     if (!post.is_liked) {
@@ -243,12 +228,6 @@ function PostCard({ post }: PostCardProps) {
               )}
             </div>
           )}
-
-          <RecipeActions
-            recipeId={post.id}
-            ingredients={post.recipe_data.ingredients || []}
-            userId={userId || undefined}
-          />
         </div>
       )}
 

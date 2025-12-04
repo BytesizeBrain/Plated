@@ -9,9 +9,7 @@ from routes.posts_routes import posts_bp
 from routes.engagement_routes import engagement_bp
 from routes.social_routes import social_bp
 from routes.messages_routes import messages_bp
-from routes.gamification_routes import gamification_bp
-from routes.squad_routes import squad_bp
-from routes.proof_routes import proof_bp
+from routes.gamification_routes import gamification_bp   
 from routes.ingredient_prices_routes import ingredient_prices_bp
 
 # Configure ProxyFix for Nginx (only in production)
@@ -36,8 +34,6 @@ app.register_blueprint(engagement_bp, url_prefix='/api')
 app.register_blueprint(social_bp, url_prefix='/api')
 app.register_blueprint(messages_bp, url_prefix='/api')
 app.register_blueprint(gamification_bp, url_prefix='/api')
-app.register_blueprint(squad_bp, url_prefix='/api')
-app.register_blueprint(proof_bp, url_prefix='/api')
 app.register_blueprint(ingredient_prices_bp, url_prefix='/api')  # Ingredient prices routes
 
 @app.route('/health')
@@ -66,10 +62,4 @@ if __name__ == '__main__':
         database_url = os.getenv('DATABASE_URL', '')
         if not database_url.startswith('postgresql'):
             db.create_all()
-    # In production, disable Flask debug mode. deploy.sh starts this module via
-    # `python3 backend/app.py`, so we derive debug from environment flags.
-    env_mode = os.getenv('ENV', '').lower()
-    flask_env = os.getenv('FLASK_ENV', '').lower()
-    is_production = env_mode == 'production' or flask_env == 'production'
-
-    app.run(debug=not is_production, host='0.0.0.0')
+    app.run(debug=True, host='0.0.0.0')
